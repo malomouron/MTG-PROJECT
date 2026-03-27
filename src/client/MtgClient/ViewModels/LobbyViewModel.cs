@@ -1,9 +1,9 @@
-using System.Collections.ObjectModel;
-using System.Windows;
 using MtgClient.Helpers;
 using MtgClient.Services;
 using MtgEngine.Shared.Enums;
 using MtgEngine.Shared.Protocol;
+using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace MtgClient.ViewModels;
 
@@ -90,7 +90,7 @@ public sealed class LobbyViewModel : ObservableObject
         Application.Current.Dispatcher.Invoke(() =>
         {
             Games.Clear();
-            foreach (var game in msg.Games)
+            foreach (GameInfoDto game in msg.Games)
             {
                 if (game.Status == GameStatus.WaitingForPlayers)
                     Games.Add(game);

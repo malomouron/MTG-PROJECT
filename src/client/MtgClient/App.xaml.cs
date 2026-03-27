@@ -1,8 +1,7 @@
-using System;
-using System.Windows;
 using MtgClient.Helpers;
 using MtgClient.Services;
 using MtgClient.ViewModels;
+using System.Windows;
 
 namespace MtgClient;
 
@@ -31,9 +30,9 @@ public partial class App : Application
             throw new ArgumentException($"Unknown ViewModel type: {type}");
         });
 
-        var mainViewModel = new MainViewModel(navigation, _connection);
+        MainViewModel mainViewModel = new MainViewModel(navigation, _connection);
 
-        var mainWindow = new MainWindow
+        MainWindow mainWindow = new MainWindow
         {
             DataContext = mainViewModel
         };

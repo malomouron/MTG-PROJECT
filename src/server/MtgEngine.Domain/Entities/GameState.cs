@@ -35,7 +35,7 @@ public sealed class GameState
 
     public void NextActivePlayer()
     {
-        var alivePlayers = GetAlivePlayers();
+        List<PlayerState> alivePlayers = GetAlivePlayers();
         if (alivePlayers.Count == 0) return;
 
         do

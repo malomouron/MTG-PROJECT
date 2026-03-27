@@ -1,5 +1,3 @@
-using MtgEngine.Shared.Enums;
-
 namespace MtgEngine.Shared.Models;
 
 public sealed class ManaCost

@@ -39,7 +39,7 @@ public sealed class GameService
         if (maxPlayers < 2 || maxPlayers > 6)
             throw new ArgumentOutOfRangeException(nameof(maxPlayers), "Must be between 2 and 6");
 
-        var game = new GameState
+        GameState game = new GameState
         {
             GameName = gameName,
             MaxPlayers = maxPlayers
@@ -57,7 +57,7 @@ public sealed class GameService
 
     public Result JoinGame(string gameId, string playerId, string playerName, List<string> deckCardIds, string commanderId)
     {
-        var game = GetGame(gameId);
+        GameState? game = GetGame(gameId);
         if (game == null)
             return Result.Fail("Game not found");
         if (game.Status != GameStatus.WaitingForPlayers)
@@ -74,21 +74,21 @@ public sealed class GameService
         if (!deckCardIds.Contains(commanderId))
             return Result.Fail("Commander must be in the deck list");
 
-        var commanderDef = _cardRepository.GetById(commanderId);
+        CardDefinition? commanderDef = _cardRepository.GetById(commanderId);
         if (commanderDef == null)
             return Result.Fail($"Commander card not found: {commanderId}");
         if (commanderDef.Type != CardType.Creature || !commanderDef.IsLegendary)
             return Result.Fail("Commander must be a legendary creature");
 
-        var player = new PlayerState(playerId, playerName, game.StartingLife);
+        PlayerState player = new PlayerState(playerId, playerName, game.StartingLife);
 
-        foreach (var cardId in deckCardIds)
+        foreach (string cardId in deckCardIds)
         {
-            var def = _cardRepository.GetById(cardId);
+            CardDefinition? def = _cardRepository.GetById(cardId);
             if (def == null)
                 return Result.Fail($"Card not found: {cardId}");
 
-            var instance = new CardInstance(def, playerId);
+            CardInstance instance = new CardInstance(def, playerId);
 
             if (cardId == commanderId)
                 player.CommandZone.Add(instance);
@@ -103,7 +103,7 @@ public sealed class GameService
 
     public Result StartGame(string gameId, string requestingPlayerId)
     {
-        var game = GetGame(gameId);
+        GameState? game = GetGame(gameId);
         if (game == null)
             return Result.Fail("Game not found");
         if (game.Status != GameStatus.WaitingForPlayers)
@@ -118,7 +118,7 @@ public sealed class GameService
         game.ActivePlayerIndex = 0;
 
         // Shuffle turn order
-        var rng = Random.Shared;
+        Random rng = Random.Shared;
         int n = game.Players.Count;
         while (n > 1)
         {
@@ -128,10 +128,10 @@ public sealed class GameService
         }
 
         // Draw initial hands (7 cards each)
-        foreach (var player in game.Players)
+        foreach (PlayerState player in game.Players)
         {
             for (int i = 0; i < 7; i++)
-                player.DrawCard();
+                _ = player.DrawCard();
         }
 
         _eventBus.Publish(new GameStartedEvent
@@ -146,22 +146,22 @@ public sealed class GameService
 
     public Result PlayCard(string gameId, string playerId, string cardInstanceId, string? targetId)
     {
-        var game = GetGame(gameId);
+        GameState? game = GetGame(gameId);
         if (game == null) return Result.Fail("Game not found");
         if (game.Status != GameStatus.InProgress) return Result.Fail("Game not in progress");
 
-        var player = game.GetPlayer(playerId);
+        PlayerState? player = game.GetPlayer(playerId);
         if (player == null || player.IsEliminated) return Result.Fail("Invalid player");
 
         // Find card in hand
-        var card = player.Hand.FirstOrDefault(c => c.InstanceId == cardInstanceId);
+        CardInstance? card = player.Hand.FirstOrDefault(c => c.InstanceId == cardInstanceId);
         // Or check command zone
         card ??= player.CommandZone.FirstOrDefault(c => c.InstanceId == cardInstanceId);
 
         if (card == null) return Result.Fail("Card not in hand or command zone");
 
-        var def = card.Definition;
-        var isFromCommandZone = player.CommandZone.Contains(card);
+        CardDefinition def = card.Definition;
+        bool isFromCommandZone = player.CommandZone.Contains(card);
 
         // Validate timing
         if (def.Type == CardType.Land)
@@ -181,12 +181,12 @@ public sealed class GameService
         }
 
         // Validate mana cost
-        var manaCost = ManaCost.Parse(def.Cost);
+        ManaCost manaCost = ManaCost.Parse(def.Cost);
         if (isFromCommandZone)
         {
             // Commander tax: +2 per previous cast
             manaCost = ManaCost.Parse(def.Cost);
-            var taxAmount = player.CommanderCastCount * 2;
+            int taxAmount = player.CommanderCastCount * 2;
             manaCost = new ManaCost
             {
                 Generic = manaCost.Generic + taxAmount,
@@ -202,7 +202,7 @@ public sealed class GameService
             return Result.Fail("Not enough mana");
 
         // Validate target if needed
-        var firstEffect = def.Effects.FirstOrDefault();
+        EffectDefinition? firstEffect = def.Effects.FirstOrDefault();
         if (firstEffect != null && firstEffect.Target != TargetType.None && firstEffect.Target != TargetType.Self)
         {
             if (!_targetValidator.IsValidTarget(game, player, firstEffect.Target, targetId))
@@ -215,12 +215,12 @@ public sealed class GameService
         // Remove from hand or command zone
         if (isFromCommandZone)
         {
-            player.CommandZone.Remove(card);
+            _ = player.CommandZone.Remove(card);
             player.CommanderCastCount++;
         }
         else
         {
-            player.Hand.Remove(card);
+            _ = player.Hand.Remove(card);
         }
 
         // Push to stack
@@ -238,10 +238,10 @@ public sealed class GameService
         if (player.LandPlayedThisTurn)
             return Result.Fail("Already played a land this turn");
 
-        player.Hand.Remove(card);
+        _ = player.Hand.Remove(card);
         player.LandPlayedThisTurn = true;
 
-        var permanent = new Permanent(card, game.TurnNumber)
+        Permanent permanent = new Permanent(card, game.TurnNumber)
         {
             HasSummoningSickness = false // Lands don't have summoning sickness
         };
@@ -259,16 +259,16 @@ public sealed class GameService
 
     public Result PassPriority(string gameId, string playerId)
     {
-        var game = GetGame(gameId);
+        GameState? game = GetGame(gameId);
         if (game == null) return Result.Fail("Game not found");
         if (game.Status != GameStatus.InProgress) return Result.Fail("Game not in progress");
 
-        var player = game.GetPlayer(playerId);
+        PlayerState? player = game.GetPlayer(playerId);
         if (player == null || player.IsEliminated) return Result.Fail("Invalid player");
 
-        game.PlayersPassedPriority.Add(playerId);
+        _ = game.PlayersPassedPriority.Add(playerId);
 
-        var alivePlayers = game.GetAlivePlayers();
+        List<PlayerState> alivePlayers = game.GetAlivePlayers();
         if (game.PlayersPassedPriority.IsSupersetOf(alivePlayers.Select(p => p.PlayerId)))
         {
             game.PlayersPassedPriority.Clear();
@@ -288,7 +288,7 @@ public sealed class GameService
 
     public Result DeclareAttackers(string gameId, string playerId, List<CombatAssignment> attackers)
     {
-        var game = GetGame(gameId);
+        GameState? game = GetGame(gameId);
         if (game == null) return Result.Fail("Game not found");
         if (game.CurrentPhase != Phase.DeclareAttackers) return Result.Fail("Not in attack phase");
 
@@ -300,7 +300,7 @@ public sealed class GameService
 
     public Result DeclareBlockers(string gameId, string playerId, List<CombatBlock> blockers)
     {
-        var game = GetGame(gameId);
+        GameState? game = GetGame(gameId);
         if (game == null) return Result.Fail("Game not found");
         if (game.CurrentPhase != Phase.DeclareBlockers) return Result.Fail("Not in block phase");
 
@@ -312,7 +312,7 @@ public sealed class GameService
 
     public Result ResolveCombat(string gameId)
     {
-        var game = GetGame(gameId);
+        GameState? game = GetGame(gameId);
         if (game == null) return Result.Fail("Game not found");
         if (game.CurrentPhase != Phase.CombatDamage) return Result.Fail("Not in damage phase");
 
@@ -322,19 +322,19 @@ public sealed class GameService
 
     public Result ActivateAbility(string gameId, string playerId, string permanentId, int abilityIndex, string? targetId)
     {
-        var game = GetGame(gameId);
+        GameState? game = GetGame(gameId);
         if (game == null) return Result.Fail("Game not found");
 
-        var player = game.GetPlayer(playerId);
+        PlayerState? player = game.GetPlayer(playerId);
         if (player == null || player.IsEliminated) return Result.Fail("Invalid player");
 
-        var permanent = player.Battlefield.FirstOrDefault(p => p.InstanceId == permanentId);
+        Permanent? permanent = player.Battlefield.FirstOrDefault(p => p.InstanceId == permanentId);
         if (permanent == null) return Result.Fail("Permanent not found");
 
         if (abilityIndex < 0 || abilityIndex >= permanent.Definition.Abilities.Count)
             return Result.Fail("Invalid ability index");
 
-        var ability = permanent.Definition.Abilities[abilityIndex];
+        AbilityDefinition ability = permanent.Definition.Abilities[abilityIndex];
 
         // Handle tap cost
         if (ability.Cost == "tap")
@@ -346,18 +346,18 @@ public sealed class GameService
         }
 
         // Execute ability effect
-        var effectDef = new EffectDefinition
+        EffectDefinition effectDef = new EffectDefinition
         {
             Trigger = EffectTrigger.OnCast,
             Action = ability.Action,
             Target = ability.Target,
-            Value = int.TryParse(ability.Value, out var val) ? val : 0,
+            Value = int.TryParse(ability.Value, out int val) ? val : 0,
             ValueString = ability.Value
         };
 
-        var handler = _stackManager;
+        StackManager handler = _stackManager;
         // For activated abilities, resolve immediately (simplified V1)
-        var resolver = new EffectResolver(GetEffectHandlers());
+        EffectResolver resolver = new EffectResolver(GetEffectHandlers());
         resolver.ResolveEffects(game, player, [effectDef], EffectTrigger.OnCast, targetId);
 
         return Result.Ok();

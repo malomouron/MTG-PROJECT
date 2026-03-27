@@ -1,10 +1,9 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MtgEngine.Application.Services;
 using MtgEngine.Domain.Entities;
 using MtgEngine.Domain.Interfaces;
-using MtgEngine.Shared.Enums;
 using MtgEngine.Shared.Protocol;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MtgEngine.Infrastructure.Networking;
 
@@ -33,8 +32,8 @@ public sealed class MessageRouter
 
     public async Task HandleMessageAsync(WebSocketClientConnection connection, string rawJson)
     {
-        using var doc = JsonDocument.Parse(rawJson);
-        var type = doc.RootElement.GetProperty("type").GetString();
+        using JsonDocument doc = JsonDocument.Parse(rawJson);
+        string? type = doc.RootElement.GetProperty("type").GetString();
 
         try
         {
@@ -80,13 +79,13 @@ public sealed class MessageRouter
 
     private async Task HandleConnect(WebSocketClientConnection connection, string json)
     {
-        var msg = Deserialize<ConnectMessage>(json);
+        ConnectMessage msg = Deserialize<ConnectMessage>(json);
         connection.PlayerId = msg.PlayerName;
         _connectionManager.Add(connection);
 
         // Send lobby state
-        var games = _gameService.GetAllGames();
-        var lobbyMsg = new LobbyUpdateMessage
+        IReadOnlyList<GameState> games = _gameService.GetAllGames();
+        LobbyUpdateMessage lobbyMsg = new LobbyUpdateMessage
         {
             Type = "lobby_update",
             Games = games.Select(g => new GameInfoDto
@@ -103,8 +102,8 @@ public sealed class MessageRouter
 
     private async Task HandleCreateGame(WebSocketClientConnection connection, string json)
     {
-        var msg = Deserialize<CreateGameMessage>(json);
-        var game = _gameService.CreateGame(msg.GameName, msg.MaxPlayers);
+        CreateGameMessage msg = Deserialize<CreateGameMessage>(json);
+        GameState game = _gameService.CreateGame(msg.GameName, msg.MaxPlayers);
 
         await BroadcastLobbyUpdate();
         await connection.SendAsync(new GameEventMessage
@@ -121,8 +120,8 @@ public sealed class MessageRouter
 
     private async Task HandleJoinGame(WebSocketClientConnection connection, string json)
     {
-        var msg = Deserialize<JoinGameMessage>(json);
-        var result = _gameService.JoinGame(
+        JoinGameMessage msg = Deserialize<JoinGameMessage>(json);
+        Result result = _gameService.JoinGame(
             msg.GameId, connection.PlayerId!, connection.PlayerId!, msg.DeckCardIds, msg.CommanderId);
 
         if (!result.Success)
@@ -138,8 +137,8 @@ public sealed class MessageRouter
 
     private async Task HandleStartGame(WebSocketClientConnection connection, string json)
     {
-        var msg = Deserialize<StartGameMessage>(json);
-        var result = _gameService.StartGame(msg.GameId, connection.PlayerId!);
+        StartGameMessage msg = Deserialize<StartGameMessage>(json);
+        Result result = _gameService.StartGame(msg.GameId, connection.PlayerId!);
 
         if (!result.Success)
         {
@@ -153,8 +152,8 @@ public sealed class MessageRouter
 
     private async Task HandlePlayCard(WebSocketClientConnection connection, string json)
     {
-        var msg = Deserialize<PlayCardMessage>(json);
-        var result = _gameService.PlayCard(msg.GameId, connection.PlayerId!, msg.CardInstanceId, msg.TargetId);
+        PlayCardMessage msg = Deserialize<PlayCardMessage>(json);
+        Result result = _gameService.PlayCard(msg.GameId, connection.PlayerId!, msg.CardInstanceId, msg.TargetId);
 
         if (!result.Success)
         {
@@ -168,15 +167,15 @@ public sealed class MessageRouter
 
     private async Task HandleDeclareAttackers(WebSocketClientConnection connection, string json)
     {
-        var msg = Deserialize<DeclareAttackersMessage>(json);
-        var attackers = msg.Attackers.Select(a => new CombatAssignment
+        DeclareAttackersMessage msg = Deserialize<DeclareAttackersMessage>(json);
+        List<CombatAssignment> attackers = msg.Attackers.Select(a => new CombatAssignment
         {
             AttackerId = a.CreatureId,
             AttackerControllerId = connection.PlayerId!,
             DefendingPlayerId = a.DefendingPlayerId
         }).ToList();
 
-        var result = _gameService.DeclareAttackers(msg.GameId, connection.PlayerId!, attackers);
+        Result result = _gameService.DeclareAttackers(msg.GameId, connection.PlayerId!, attackers);
         if (!result.Success)
         {
             await SendError(connection, result.Error!);
@@ -188,14 +187,14 @@ public sealed class MessageRouter
 
     private async Task HandleDeclareBlockers(WebSocketClientConnection connection, string json)
     {
-        var msg = Deserialize<DeclareBlockersMessage>(json);
-        var blockers = msg.Blockers.Select(b => new CombatBlock
+        DeclareBlockersMessage msg = Deserialize<DeclareBlockersMessage>(json);
+        List<CombatBlock> blockers = msg.Blockers.Select(b => new CombatBlock
         {
             BlockerId = b.BlockerId,
             AttackerId = b.AttackerId
         }).ToList();
 
-        var result = _gameService.DeclareBlockers(msg.GameId, connection.PlayerId!, blockers);
+        Result result = _gameService.DeclareBlockers(msg.GameId, connection.PlayerId!, blockers);
         if (!result.Success)
         {
             await SendError(connection, result.Error!);
@@ -207,8 +206,8 @@ public sealed class MessageRouter
 
     private async Task HandlePassPriority(WebSocketClientConnection connection, string json)
     {
-        var msg = Deserialize<PassPriorityMessage>(json);
-        var result = _gameService.PassPriority(msg.GameId, connection.PlayerId!);
+        PassPriorityMessage msg = Deserialize<PassPriorityMessage>(json);
+        Result result = _gameService.PassPriority(msg.GameId, connection.PlayerId!);
 
         if (!result.Success)
         {
@@ -221,8 +220,8 @@ public sealed class MessageRouter
 
     private async Task HandleActivateAbility(WebSocketClientConnection connection, string json)
     {
-        var msg = Deserialize<ActivateAbilityMessage>(json);
-        var result = _gameService.ActivateAbility(
+        ActivateAbilityMessage msg = Deserialize<ActivateAbilityMessage>(json);
+        Result result = _gameService.ActivateAbility(
             msg.GameId, connection.PlayerId!, msg.PermanentId, msg.AbilityIndex, msg.TargetId);
 
         if (!result.Success)
@@ -236,10 +235,10 @@ public sealed class MessageRouter
 
     private async Task BroadcastGameState(string gameId)
     {
-        var game = _gameService.GetGame(gameId);
+        GameState? game = _gameService.GetGame(gameId);
         if (game == null) return;
 
-        var stateMsg = new GameStateMessage
+        GameStateMessage stateMsg = new GameStateMessage
         {
             Type = "game_state",
             State = MapGameState(game)
@@ -250,8 +249,8 @@ public sealed class MessageRouter
 
     private async Task BroadcastLobbyUpdate()
     {
-        var games = _gameService.GetAllGames();
-        var lobbyMsg = new LobbyUpdateMessage
+        IReadOnlyList<GameState> games = _gameService.GetAllGames();
+        LobbyUpdateMessage lobbyMsg = new LobbyUpdateMessage
         {
             Type = "lobby_update",
             Games = games.Select(g => new GameInfoDto
@@ -264,26 +263,26 @@ public sealed class MessageRouter
             }).ToList()
         };
 
-        foreach (var conn in _connectionManager.GetAll())
+        foreach (IClientConnection conn in _connectionManager.GetAll())
             await conn.SendAsync(lobbyMsg);
     }
 
     private async Task SendPrivateHandsForGame(string gameId)
     {
-        var game = _gameService.GetGame(gameId);
+        GameState? game = _gameService.GetGame(gameId);
         if (game == null) return;
 
-        foreach (var player in game.Players)
+        foreach (PlayerState player in game.Players)
             await SendPrivateHand(gameId, player.PlayerId);
     }
 
     private async Task SendPrivateHand(string gameId, string playerId)
     {
-        var game = _gameService.GetGame(gameId);
-        var player = game?.GetPlayer(playerId);
+        GameState? game = _gameService.GetGame(gameId);
+        PlayerState? player = game?.GetPlayer(playerId);
         if (player == null) return;
 
-        var handMsg = new PrivatePlayerStateMessage
+        PrivatePlayerStateMessage handMsg = new PrivatePlayerStateMessage
         {
             Type = "private_state",
             Hand = player.Hand.Select(c => new HandCardDto

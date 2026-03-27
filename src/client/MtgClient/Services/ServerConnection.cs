@@ -1,8 +1,9 @@
+using MtgEngine.Shared.Protocol;
+using System.IO;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using MtgEngine.Shared.Protocol;
 
 namespace MtgClient.Services;
 
@@ -68,8 +69,8 @@ public sealed class ServerConnection : IDisposable
         if (_ws?.State != WebSocketState.Open)
             return;
 
-        var json = JsonSerializer.Serialize(message, message.GetType(), SendOptions);
-        var buffer = Encoding.UTF8.GetBytes(json);
+        string json = JsonSerializer.Serialize(message, message.GetType(), SendOptions);
+        byte[] buffer = Encoding.UTF8.GetBytes(json);
         await _ws.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
     }
 
@@ -78,18 +79,18 @@ public sealed class ServerConnection : IDisposable
         if (_ws?.State != WebSocketState.Open)
             return;
 
-        var buffer = Encoding.UTF8.GetBytes(json);
+        byte[] buffer = Encoding.UTF8.GetBytes(json);
         await _ws.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
     }
 
     private async Task ReceiveLoop(CancellationToken ct)
     {
-        var buffer = new byte[16384];
+        byte[] buffer = new byte[16384];
         try
         {
             while (!ct.IsCancellationRequested && _ws?.State == WebSocketState.Open)
             {
-                using var ms = new MemoryStream();
+                using MemoryStream ms = new MemoryStream();
                 WebSocketReceiveResult result;
                 do
                 {
@@ -103,7 +104,7 @@ public sealed class ServerConnection : IDisposable
                 }
                 while (!result.EndOfMessage);
 
-                var json = Encoding.UTF8.GetString(ms.ToArray());
+                string json = Encoding.UTF8.GetString(ms.ToArray());
                 DispatchMessage(json);
             }
         }
@@ -118,39 +119,39 @@ public sealed class ServerConnection : IDisposable
     {
         try
         {
-            using var doc = JsonDocument.Parse(json);
-            var type = doc.RootElement.GetProperty("type").GetString();
+            using JsonDocument doc = JsonDocument.Parse(json);
+            string? type = doc.RootElement.GetProperty("type").GetString();
 
             switch (type)
             {
                 case "game_state":
-                    var gs = JsonSerializer.Deserialize<GameStateMessage>(json, ReceiveOptions);
+                    GameStateMessage? gs = JsonSerializer.Deserialize<GameStateMessage>(json, ReceiveOptions);
                     if (gs != null) GameStateReceived?.Invoke(gs);
                     break;
 
                 case "lobby_update":
-                    var lu = JsonSerializer.Deserialize<LobbyUpdateMessage>(json, ReceiveOptions);
+                    LobbyUpdateMessage? lu = JsonSerializer.Deserialize<LobbyUpdateMessage>(json, ReceiveOptions);
                     if (lu != null) LobbyUpdateReceived?.Invoke(lu);
                     break;
 
                 case "error":
-                    var err = JsonSerializer.Deserialize<ErrorMessage>(json, ReceiveOptions);
+                    ErrorMessage? err = JsonSerializer.Deserialize<ErrorMessage>(json, ReceiveOptions);
                     if (err != null) ErrorReceived?.Invoke(err);
                     break;
 
                 case "game_created":
                 case "game_event":
-                    var ge = JsonSerializer.Deserialize<GameEventMessage>(json, ReceiveOptions);
+                    GameEventMessage? ge = JsonSerializer.Deserialize<GameEventMessage>(json, ReceiveOptions);
                     if (ge != null) GameEventReceived?.Invoke(ge);
                     break;
 
                 case "private_state":
-                    var ps = JsonSerializer.Deserialize<PrivatePlayerStateMessage>(json, ReceiveOptions);
+                    PrivatePlayerStateMessage? ps = JsonSerializer.Deserialize<PrivatePlayerStateMessage>(json, ReceiveOptions);
                     if (ps != null) PrivateStateReceived?.Invoke(ps);
                     break;
 
                 case "chat":
-                    var chat = JsonSerializer.Deserialize<ChatMessageServer>(json, ReceiveOptions);
+                    ChatMessageServer? chat = JsonSerializer.Deserialize<ChatMessageServer>(json, ReceiveOptions);
                     if (chat != null) ChatReceived?.Invoke(chat);
                     break;
             }

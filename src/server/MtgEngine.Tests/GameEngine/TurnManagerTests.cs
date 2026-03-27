@@ -17,7 +17,7 @@ public class TurnManagerTests
 
     private static GameState CreateTwoPlayerGame()
     {
-        var game = new GameState
+        GameState game = new GameState
         {
             GameName = "Test",
             Status = GameStatus.InProgress,
@@ -25,11 +25,11 @@ public class TurnManagerTests
             ActivePlayerIndex = 0
         };
 
-        var p1 = new PlayerState("p1", "Player 1", 40);
-        var p2 = new PlayerState("p2", "Player 2", 40);
+        PlayerState p1 = new PlayerState("p1", "Player 1", 40);
+        PlayerState p2 = new PlayerState("p2", "Player 2", 40);
 
         // Each player needs at least one card in library for draws
-        var cardDef = new CardDefinition
+        CardDefinition cardDef = new CardDefinition
         {
             Id = "test_card",
             Name = "Test Card",
@@ -51,8 +51,8 @@ public class TurnManagerTests
     [Fact]
     public void StartTurn_UntapsAllPermanents()
     {
-        var game = CreateTwoPlayerGame();
-        var cardDef = new CardDefinition
+        GameState game = CreateTwoPlayerGame();
+        CardDefinition cardDef = new CardDefinition
         {
             Id = "creature",
             Name = "Creature",
@@ -60,7 +60,7 @@ public class TurnManagerTests
             Power = 2,
             Toughness = 2
         };
-        var perm = new Permanent(new CardInstance(cardDef, "p1"), 1) { IsTapped = true };
+        Permanent perm = new Permanent(new CardInstance(cardDef, "p1"), 1) { IsTapped = true };
         game.Players[0].Battlefield.Add(perm);
 
         _turnManager.StartTurn(game);
@@ -71,7 +71,7 @@ public class TurnManagerTests
     [Fact]
     public void StartTurn_SetsPhaseToMainPre()
     {
-        var game = CreateTwoPlayerGame();
+        GameState game = CreateTwoPlayerGame();
         _turnManager.StartTurn(game);
 
         Assert.Equal(Phase.MainPre, game.CurrentPhase);
@@ -80,8 +80,8 @@ public class TurnManagerTests
     [Fact]
     public void StartTurn_DrawsCardOnTurn2()
     {
-        var game = CreateTwoPlayerGame();
-        var initialHandCount = game.Players[0].Hand.Count;
+        GameState game = CreateTwoPlayerGame();
+        int initialHandCount = game.Players[0].Hand.Count;
 
         _turnManager.StartTurn(game);
 
@@ -91,9 +91,9 @@ public class TurnManagerTests
     [Fact]
     public void StartTurn_NoDrawOnTurn1()
     {
-        var game = CreateTwoPlayerGame();
+        GameState game = CreateTwoPlayerGame();
         game.TurnNumber = 1;
-        var initialHandCount = game.Players[0].Hand.Count;
+        int initialHandCount = game.Players[0].Hand.Count;
 
         _turnManager.StartTurn(game);
 
@@ -103,7 +103,7 @@ public class TurnManagerTests
     [Fact]
     public void StartTurn_ResetsLandPlayedFlag()
     {
-        var game = CreateTwoPlayerGame();
+        GameState game = CreateTwoPlayerGame();
         game.Players[0].LandPlayedThisTurn = true;
 
         _turnManager.StartTurn(game);
@@ -114,7 +114,7 @@ public class TurnManagerTests
     [Fact]
     public void AdvancePhase_MainPreToCombatBegin()
     {
-        var game = CreateTwoPlayerGame();
+        GameState game = CreateTwoPlayerGame();
         game.CurrentPhase = Phase.MainPre;
 
         _turnManager.AdvancePhase(game);
@@ -125,7 +125,7 @@ public class TurnManagerTests
     [Fact]
     public void AdvancePhase_MainPostToEnd()
     {
-        var game = CreateTwoPlayerGame();
+        GameState game = CreateTwoPlayerGame();
         game.CurrentPhase = Phase.MainPost;
 
         _turnManager.AdvancePhase(game);

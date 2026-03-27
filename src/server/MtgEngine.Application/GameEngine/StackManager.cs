@@ -19,7 +19,7 @@ public sealed class StackManager
 
     public void PushToStack(GameState game, CardInstance card, string controllerId, string? targetId)
     {
-        var stackItem = new StackItem(card, controllerId, targetId);
+        StackItem stackItem = new StackItem(card, controllerId, targetId);
         game.Stack.Push(stackItem);
 
         _eventBus.Publish(new CardPlayedEvent
@@ -35,8 +35,8 @@ public sealed class StackManager
     {
         if (game.Stack.Count == 0) return;
 
-        var item = game.Stack.Pop();
-        var caster = game.GetPlayer(item.ControllerId);
+        StackItem item = game.Stack.Pop();
+        PlayerState? caster = game.GetPlayer(item.ControllerId);
         if (caster == null) return;
 
         // Resolve on-cast effects
@@ -46,8 +46,8 @@ public sealed class StackManager
         // If it's a permanent type, put it on the battlefield
         if (IsPermanentType(item.Definition.Type))
         {
-            var cardInstance = new CardInstance(item.Definition, item.ControllerId);
-            var permanent = new Permanent(cardInstance, game.TurnNumber);
+            CardInstance cardInstance = new CardInstance(item.Definition, item.ControllerId);
+            Permanent permanent = new Permanent(cardInstance, game.TurnNumber);
             caster.Battlefield.Add(permanent);
 
             // Resolve ETB triggers
@@ -67,7 +67,7 @@ public sealed class StackManager
         else
         {
             // Instants/Sorceries go to graveyard after resolution
-            var cardForGraveyard = new CardInstance(item.Definition, item.ControllerId);
+            CardInstance cardForGraveyard = new CardInstance(item.Definition, item.ControllerId);
             caster.Graveyard.Add(cardForGraveyard);
         }
 
@@ -92,16 +92,16 @@ public sealed class StackManager
     private void CheckStateBasedActions(GameState game)
     {
         // Check for dead creatures
-        foreach (var player in game.Players.Where(p => !p.IsEliminated))
+        foreach (PlayerState? player in game.Players.Where(p => !p.IsEliminated))
         {
-            var deadCreatures = player.Battlefield
+            List<Permanent> deadCreatures = player.Battlefield
                 .Where(p => p.IsCreature && p.DamageMarked >= p.Toughness)
                 .ToList();
 
-            foreach (var dead in deadCreatures)
+            foreach (Permanent dead in deadCreatures)
             {
-                player.Battlefield.Remove(dead);
-                var card = new CardInstance(dead.Definition, player.PlayerId);
+                _ = player.Battlefield.Remove(dead);
+                CardInstance card = new CardInstance(dead.Definition, player.PlayerId);
                 player.Graveyard.Add(card);
 
                 _eventBus.Publish(new CreatureDiedEvent
@@ -114,7 +114,7 @@ public sealed class StackManager
         }
 
         // Check for eliminated players
-        foreach (var player in game.Players.Where(p => !p.IsEliminated))
+        foreach (PlayerState? player in game.Players.Where(p => !p.IsEliminated))
         {
             if (player.Life <= 0)
             {
@@ -129,7 +129,7 @@ public sealed class StackManager
         }
 
         // Check win condition
-        var alive = game.GetAlivePlayers();
+        List<PlayerState> alive = game.GetAlivePlayers();
         if (alive.Count <= 1 && game.Status == GameStatus.InProgress)
         {
             game.Status = GameStatus.Finished;

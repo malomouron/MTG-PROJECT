@@ -1,5 +1,5 @@
-using System.Text.RegularExpressions;
 using MtgClient.Models;
+using System.Text.RegularExpressions;
 
 namespace MtgClient.Services;
 
@@ -18,13 +18,13 @@ public sealed class DeckImportService
 
     public DeckList Parse(string deckText)
     {
-        var result = new DeckList();
-        var lines = deckText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        var section = "deck";
+        DeckList result = new DeckList();
+        string[] lines = deckText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        string section = "deck";
 
-        foreach (var rawLine in lines)
+        foreach (string rawLine in lines)
         {
-            var line = rawLine.Trim();
+            string line = rawLine.Trim();
 
             // Skip comments
             if (line.StartsWith("//") || string.IsNullOrWhiteSpace(line))
@@ -42,16 +42,16 @@ public sealed class DeckImportService
                 continue;
             }
 
-            var match = CardLineRegex.Match(line);
+            Match match = CardLineRegex.Match(line);
             if (!match.Success)
             {
                 result.Errors.Add($"Format invalide : \"{line}\"");
                 continue;
             }
 
-            var quantity = int.Parse(match.Groups[1].Value);
-            var cardName = match.Groups[2].Value;
-            var cardId = ToCardId(cardName);
+            int quantity = int.Parse(match.Groups[1].Value);
+            string cardName = match.Groups[2].Value;
+            string cardId = ToCardId(cardName);
 
             if (!_knownCardNames.Contains(cardName) && !_knownCardNames.Contains(cardId))
             {
@@ -59,7 +59,7 @@ public sealed class DeckImportService
                 continue;
             }
 
-            var entry = new DeckEntry
+            DeckEntry entry = new DeckEntry
             {
                 CardId = cardId,
                 CardName = cardName,
@@ -82,13 +82,13 @@ public sealed class DeckImportService
             result.Errors.Add($"Le deck doit contenir exactement 100 cartes ({result.TotalCards} trouvées)");
 
         // Check for duplicates (basic lands exempted)
-        var basicLands = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        HashSet<string> basicLands = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "mountain", "forest", "plains", "swamp", "island"
         };
 
-        var nonBasicEntries = result.Entries.Where(e => !basicLands.Contains(e.CardId));
-        foreach (var entry in nonBasicEntries)
+        IEnumerable<DeckEntry> nonBasicEntries = result.Entries.Where(e => !basicLands.Contains(e.CardId));
+        foreach (DeckEntry? entry in nonBasicEntries)
         {
             if (entry.Quantity > 1)
                 result.Errors.Add($"Doublon interdit en Commander : \"{entry.CardName}\" x{entry.Quantity}");

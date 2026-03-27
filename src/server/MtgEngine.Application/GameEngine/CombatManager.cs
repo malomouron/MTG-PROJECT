@@ -19,11 +19,11 @@ public sealed class CombatManager
         if (game.ActivePlayer?.PlayerId != playerId)
             return false;
 
-        var player = game.GetPlayer(playerId)!;
+        PlayerState player = game.GetPlayer(playerId)!;
 
-        foreach (var atk in attackers)
+        foreach (CombatAssignment atk in attackers)
         {
-            var creature = player.Battlefield.FirstOrDefault(p => p.InstanceId == atk.AttackerId);
+            Permanent? creature = player.Battlefield.FirstOrDefault(p => p.InstanceId == atk.AttackerId);
             if (creature == null || !creature.CanAttack)
                 return false;
 
@@ -35,9 +35,9 @@ public sealed class CombatManager
         game.CombatAttackers.AddRange(attackers);
 
         // Tap attackers (unless Vigilance)
-        foreach (var atk in attackers)
+        foreach (CombatAssignment atk in attackers)
         {
-            var creature = player.Battlefield.First(p => p.InstanceId == atk.AttackerId);
+            Permanent creature = player.Battlefield.First(p => p.InstanceId == atk.AttackerId);
             if (!creature.HasKeyword(Keyword.Vigilance))
                 creature.IsTapped = true;
         }
@@ -47,16 +47,16 @@ public sealed class CombatManager
 
     public bool DeclareBlockers(GameState game, string playerId, List<CombatBlock> blockers)
     {
-        var player = game.GetPlayer(playerId);
+        PlayerState? player = game.GetPlayer(playerId);
         if (player == null || player.IsEliminated) return false;
 
-        foreach (var block in blockers)
+        foreach (CombatBlock block in blockers)
         {
-            var blocker = player.Battlefield.FirstOrDefault(p =>
+            Permanent? blocker = player.Battlefield.FirstOrDefault(p =>
                 p.InstanceId == block.BlockerId && p.IsCreature && !p.IsTapped);
             if (blocker == null) return false;
 
-            var attackerExists = game.CombatAttackers.Any(a => a.AttackerId == block.AttackerId);
+            bool attackerExists = game.CombatAttackers.Any(a => a.AttackerId == block.AttackerId);
             if (!attackerExists) return false;
         }
 
@@ -66,19 +66,19 @@ public sealed class CombatManager
 
     public void ResolveCombatDamage(GameState game)
     {
-        var activePlayer = game.ActivePlayer!;
+        PlayerState activePlayer = game.ActivePlayer!;
 
-        foreach (var atk in game.CombatAttackers)
+        foreach (CombatAssignment atk in game.CombatAttackers)
         {
-            var attacker = activePlayer.Battlefield.FirstOrDefault(p => p.InstanceId == atk.AttackerId);
+            Permanent? attacker = activePlayer.Battlefield.FirstOrDefault(p => p.InstanceId == atk.AttackerId);
             if (attacker == null) continue;
 
-            var blocks = game.CombatBlockers.Where(b => b.AttackerId == atk.AttackerId).ToList();
+            List<CombatBlock> blocks = game.CombatBlockers.Where(b => b.AttackerId == atk.AttackerId).ToList();
 
             if (blocks.Count == 0)
             {
                 // Unblocked — damage goes to defending player
-                var defender = game.GetPlayer(atk.DefendingPlayerId);
+                PlayerState? defender = game.GetPlayer(atk.DefendingPlayerId);
                 if (defender != null)
                 {
                     defender.Life -= attacker.Power;
@@ -94,7 +94,7 @@ public sealed class CombatManager
                     // Track commander damage
                     if (attacker.Definition.IsLegendary)
                     {
-                        defender.CommanderDamageReceived.TryGetValue(attacker.Definition.Id, out int current);
+                        _ = defender.CommanderDamageReceived.TryGetValue(attacker.Definition.Id, out int current);
                         defender.CommanderDamageReceived[attacker.Definition.Id] = current + attacker.Power;
 
                         if (defender.CommanderDamageReceived[attacker.Definition.Id] >= 21)
@@ -121,9 +121,9 @@ public sealed class CombatManager
                 // Blocked — mutual damage
                 int attackerDamageRemaining = attacker.Power;
 
-                foreach (var block in blocks)
+                foreach (CombatBlock? block in blocks)
                 {
-                    var blocker = FindCreatureOnBattlefield(game, block.BlockerId);
+                    Permanent? blocker = FindCreatureOnBattlefield(game, block.BlockerId);
                     if (blocker == null) continue;
 
                     // Blocker deals damage to attacker
@@ -142,7 +142,7 @@ public sealed class CombatManager
                 // Trample: excess damage to defending player
                 if (attacker.HasKeyword(Keyword.Trample) && attackerDamageRemaining > 0)
                 {
-                    var defender = game.GetPlayer(atk.DefendingPlayerId);
+                    PlayerState? defender = game.GetPlayer(atk.DefendingPlayerId);
                     if (defender != null)
                         defender.Life -= attackerDamageRemaining;
                 }

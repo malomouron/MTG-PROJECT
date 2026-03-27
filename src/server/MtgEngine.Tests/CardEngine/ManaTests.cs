@@ -1,4 +1,3 @@
-using MtgEngine.Domain.Entities;
 using MtgEngine.Domain.ValueObjects;
 using MtgEngine.Shared.Enums;
 using MtgEngine.Shared.Models;
@@ -10,7 +9,7 @@ public class ManaPoolTests
     [Fact]
     public void Add_IncreasesCorrectColor()
     {
-        var pool = new ManaPool();
+        ManaPool pool = new ManaPool();
         pool.Add(ManaColor.Red, 3);
 
         Assert.Equal(3, pool.Red);
@@ -20,11 +19,11 @@ public class ManaPoolTests
     [Fact]
     public void CanPay_ExactMana_ReturnsTrue()
     {
-        var pool = new ManaPool();
+        ManaPool pool = new ManaPool();
         pool.Add(ManaColor.Red, 2);
         pool.Add(ManaColor.Green, 1);
 
-        var cost = ManaCost.Parse("1RR"); // 1 generic + 2 red
+        ManaCost cost = ManaCost.Parse("1RR"); // 1 generic + 2 red
 
         Assert.True(pool.CanPay(cost));
     }
@@ -32,10 +31,10 @@ public class ManaPoolTests
     [Fact]
     public void CanPay_NotEnoughColoredMana_ReturnsFalse()
     {
-        var pool = new ManaPool();
+        ManaPool pool = new ManaPool();
         pool.Add(ManaColor.Red, 1);
 
-        var cost = ManaCost.Parse("RR"); // 2 red
+        ManaCost cost = ManaCost.Parse("RR"); // 2 red
 
         Assert.False(pool.CanPay(cost));
     }
@@ -43,10 +42,10 @@ public class ManaPoolTests
     [Fact]
     public void CanPay_GenericCanBePaidWithAnyColor()
     {
-        var pool = new ManaPool();
+        ManaPool pool = new ManaPool();
         pool.Add(ManaColor.Green, 5);
 
-        var cost = ManaCost.Parse("3"); // 3 generic
+        ManaCost cost = ManaCost.Parse("3"); // 3 generic
 
         Assert.True(pool.CanPay(cost));
     }
@@ -54,10 +53,10 @@ public class ManaPoolTests
     [Fact]
     public void Pay_ReducesMana()
     {
-        var pool = new ManaPool();
+        ManaPool pool = new ManaPool();
         pool.Add(ManaColor.Red, 3);
 
-        var cost = ManaCost.Parse("1R");
+        ManaCost cost = ManaCost.Parse("1R");
         pool.Pay(cost);
 
         Assert.Equal(1, pool.Red);
@@ -66,7 +65,7 @@ public class ManaPoolTests
     [Fact]
     public void Clear_ZerosAll()
     {
-        var pool = new ManaPool();
+        ManaPool pool = new ManaPool();
         pool.Add(ManaColor.Red, 3);
         pool.Add(ManaColor.Blue, 2);
 
@@ -82,7 +81,7 @@ public class ManaCostParseTests
     [Fact]
     public void Parse_SimpleColoredCost()
     {
-        var cost = ManaCost.Parse("R");
+        ManaCost cost = ManaCost.Parse("R");
         Assert.Equal(1, cost.Red);
         Assert.Equal(0, cost.Generic);
     }
@@ -90,7 +89,7 @@ public class ManaCostParseTests
     [Fact]
     public void Parse_GenericAndColored()
     {
-        var cost = ManaCost.Parse("3RR");
+        ManaCost cost = ManaCost.Parse("3RR");
         Assert.Equal(3, cost.Generic);
         Assert.Equal(2, cost.Red);
     }
@@ -98,7 +97,7 @@ public class ManaCostParseTests
     [Fact]
     public void Parse_MultiColor()
     {
-        var cost = ManaCost.Parse("2WUB");
+        ManaCost cost = ManaCost.Parse("2WUB");
         Assert.Equal(2, cost.Generic);
         Assert.Equal(1, cost.White);
         Assert.Equal(1, cost.Blue);
@@ -108,14 +107,14 @@ public class ManaCostParseTests
     [Fact]
     public void Parse_EmptyString()
     {
-        var cost = ManaCost.Parse("");
+        ManaCost cost = ManaCost.Parse("");
         Assert.Equal(0, cost.TotalCost);
     }
 
     [Fact]
     public void TotalCost_SumsAllMana()
     {
-        var cost = ManaCost.Parse("3RG");
+        ManaCost cost = ManaCost.Parse("3RG");
         Assert.Equal(5, cost.TotalCost);
     }
 }

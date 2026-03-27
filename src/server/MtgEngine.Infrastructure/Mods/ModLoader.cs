@@ -1,7 +1,7 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MtgEngine.Domain.Interfaces;
 using MtgEngine.Shared.Models;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MtgEngine.Infrastructure.Mods;
 
@@ -44,11 +44,11 @@ public sealed class ModLoader
         if (!Directory.Exists(modsDirectory))
             return;
 
-        foreach (var modDir in Directory.GetDirectories(modsDirectory))
+        foreach (string modDir in Directory.GetDirectories(modsDirectory))
         {
             try
             {
-                var mod = LoadMod(modDir);
+                ModInfo? mod = LoadMod(modDir);
                 if (mod != null)
                     _loadedMods.Add(mod);
             }
@@ -61,31 +61,31 @@ public sealed class ModLoader
 
     private ModInfo? LoadMod(string modDirectory)
     {
-        var manifestPath = Path.Combine(modDirectory, "manifest.json");
+        string manifestPath = Path.Combine(modDirectory, "manifest.json");
         if (!File.Exists(manifestPath))
         {
             Console.Error.WriteLine($"Mod at {modDirectory} missing manifest.json — skipped");
             return null;
         }
 
-        var manifestJson = File.ReadAllText(manifestPath);
-        var manifest = JsonSerializer.Deserialize<ModManifest>(manifestJson, JsonOptions);
+        string manifestJson = File.ReadAllText(manifestPath);
+        ModManifest? manifest = JsonSerializer.Deserialize<ModManifest>(manifestJson, JsonOptions);
         if (manifest == null)
         {
             Console.Error.WriteLine($"Invalid manifest at {manifestPath} — skipped");
             return null;
         }
 
-        var cards = new List<CardDefinition>();
-        var cardsPath = Path.Combine(modDirectory, "cards.json");
+        List<CardDefinition> cards = new List<CardDefinition>();
+        string cardsPath = Path.Combine(modDirectory, "cards.json");
         if (File.Exists(cardsPath))
         {
-            var cardsJson = File.ReadAllText(cardsPath);
-            var modCards = JsonSerializer.Deserialize<List<CardDefinition>>(cardsJson, JsonOptions);
+            string cardsJson = File.ReadAllText(cardsPath);
+            List<CardDefinition>? modCards = JsonSerializer.Deserialize<List<CardDefinition>>(cardsJson, JsonOptions);
             if (modCards != null)
             {
                 // Validate: no conflicts with core cards
-                foreach (var card in modCards)
+                foreach (CardDefinition card in modCards)
                 {
                     if (_cardRepository.Exists(card.Id))
                     {

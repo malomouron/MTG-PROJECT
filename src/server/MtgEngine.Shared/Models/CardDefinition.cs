@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using MtgEngine.Shared.Enums;
 
 namespace MtgEngine.Shared.Models;

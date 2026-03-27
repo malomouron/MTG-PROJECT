@@ -1,4 +1,3 @@
-using MtgEngine.Application.CardEngine;
 using MtgEngine.Application.GameEngine.Events;
 using MtgEngine.Domain.Entities;
 using MtgEngine.Domain.Interfaces;
@@ -17,11 +16,11 @@ public sealed class TurnManager
 
     public void StartTurn(GameState game)
     {
-        var player = game.ActivePlayer!;
+        PlayerState player = game.ActivePlayer!;
         player.LandPlayedThisTurn = false;
 
         // Remove summoning sickness from permanents that were here before this turn
-        foreach (var perm in player.Battlefield)
+        foreach (Permanent perm in player.Battlefield)
         {
             if (perm.TurnEnteredBattlefield < game.TurnNumber)
                 perm.HasSummoningSickness = false;
@@ -48,7 +47,7 @@ public sealed class TurnManager
 
     public void AdvancePhase(GameState game)
     {
-        var nextPhase = game.CurrentPhase switch
+        Phase nextPhase = game.CurrentPhase switch
         {
             Phase.MainPre => Phase.CombatBegin,
             Phase.CombatBegin => Phase.DeclareAttackers,
@@ -80,8 +79,8 @@ public sealed class TurnManager
 
     private void ExecuteUntapPhase(GameState game)
     {
-        var player = game.ActivePlayer!;
-        foreach (var permanent in player.Battlefield)
+        PlayerState player = game.ActivePlayer!;
+        foreach (Permanent permanent in player.Battlefield)
         {
             permanent.IsTapped = false;
         }
@@ -89,13 +88,13 @@ public sealed class TurnManager
 
     private void ExecuteDrawPhase(GameState game)
     {
-        var player = game.ActivePlayer!;
+        PlayerState player = game.ActivePlayer!;
 
         // First player on first turn doesn't draw (Commander rule variant — optional)
         if (game.TurnNumber == 1)
             return;
 
-        var drawn = player.DrawCard();
+        CardInstance? drawn = player.DrawCard();
         if (drawn == null)
         {
             player.IsEliminated = true;
@@ -119,18 +118,18 @@ public sealed class TurnManager
 
     private void ExecuteCleanupPhase(GameState game)
     {
-        var player = game.ActivePlayer!;
+        PlayerState player = game.ActivePlayer!;
 
         // Discard down to max hand size (7)
         while (player.Hand.Count > 7)
         {
-            var discarded = player.Hand[^1];
+            CardInstance discarded = player.Hand[^1];
             player.Hand.RemoveAt(player.Hand.Count - 1);
             player.Graveyard.Add(discarded);
         }
 
         // Clear damage on creatures
-        foreach (var permanent in player.Battlefield)
+        foreach (Permanent permanent in player.Battlefield)
         {
             permanent.DamageMarked = 0;
         }
@@ -141,7 +140,7 @@ public sealed class TurnManager
 
     private void CheckWinCondition(GameState game)
     {
-        var alive = game.GetAlivePlayers();
+        List<PlayerState> alive = game.GetAlivePlayers();
         if (alive.Count == 1)
         {
             game.Status = GameStatus.Finished;

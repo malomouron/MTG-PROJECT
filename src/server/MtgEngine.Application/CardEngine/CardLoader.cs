@@ -1,7 +1,6 @@
+using MtgEngine.Shared.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using MtgEngine.Domain.Interfaces;
-using MtgEngine.Shared.Models;
 
 namespace MtgEngine.Application.CardEngine;
 
@@ -15,15 +14,15 @@ public sealed class CardLoader
 
     public IReadOnlyList<CardDefinition> LoadFromDirectory(string directoryPath)
     {
-        var cards = new List<CardDefinition>();
+        List<CardDefinition> cards = new List<CardDefinition>();
 
         if (!Directory.Exists(directoryPath))
             return cards;
 
-        foreach (var file in Directory.GetFiles(directoryPath, "*.json"))
+        foreach (string file in Directory.GetFiles(directoryPath, "*.json"))
         {
-            var json = File.ReadAllText(file);
-            var card = JsonSerializer.Deserialize<CardDefinition>(json, JsonOptions);
+            string json = File.ReadAllText(file);
+            CardDefinition? card = JsonSerializer.Deserialize<CardDefinition>(json, JsonOptions);
             if (card != null)
                 cards.Add(card);
         }

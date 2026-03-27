@@ -14,7 +14,7 @@ public sealed class DealDamageHandler : IEffectHandler
         if (targetId == null) return;
 
         // Target is a player
-        var targetPlayer = game.GetPlayer(targetId);
+        PlayerState? targetPlayer = game.GetPlayer(targetId);
         if (targetPlayer != null)
         {
             targetPlayer.Life -= effect.Value;
@@ -22,9 +22,9 @@ public sealed class DealDamageHandler : IEffectHandler
         }
 
         // Target is a creature on the battlefield
-        foreach (var player in game.Players)
+        foreach (PlayerState player in game.Players)
         {
-            var permanent = player.Battlefield.FirstOrDefault(p => p.InstanceId == targetId);
+            Permanent? permanent = player.Battlefield.FirstOrDefault(p => p.InstanceId == targetId);
             if (permanent != null)
             {
                 permanent.DamageMarked += effect.Value;
@@ -57,7 +57,7 @@ public sealed class DrawCardHandler : IEffectHandler
                 caster.IsEliminated = true;
                 return;
             }
-            caster.DrawCard();
+            _ = caster.DrawCard();
         }
     }
 }
@@ -70,13 +70,13 @@ public sealed class DestroyHandler : IEffectHandler
     {
         if (targetId == null) return;
 
-        foreach (var player in game.Players)
+        foreach (PlayerState player in game.Players)
         {
-            var permanent = player.Battlefield.FirstOrDefault(p => p.InstanceId == targetId);
+            Permanent? permanent = player.Battlefield.FirstOrDefault(p => p.InstanceId == targetId);
             if (permanent != null)
             {
-                player.Battlefield.Remove(permanent);
-                var card = new CardInstance(permanent.Definition, player.PlayerId);
+                _ = player.Battlefield.Remove(permanent);
+                CardInstance card = new CardInstance(permanent.Definition, player.PlayerId);
                 player.Graveyard.Add(card);
                 return;
             }
@@ -92,9 +92,9 @@ public sealed class TapHandler : IEffectHandler
     {
         if (targetId == null) return;
 
-        foreach (var player in game.Players)
+        foreach (PlayerState player in game.Players)
         {
-            var permanent = player.Battlefield.FirstOrDefault(p => p.InstanceId == targetId);
+            Permanent? permanent = player.Battlefield.FirstOrDefault(p => p.InstanceId == targetId);
             if (permanent != null)
             {
                 permanent.IsTapped = true;
@@ -112,9 +112,9 @@ public sealed class UntapHandler : IEffectHandler
     {
         if (targetId == null) return;
 
-        foreach (var player in game.Players)
+        foreach (PlayerState player in game.Players)
         {
-            var permanent = player.Battlefield.FirstOrDefault(p => p.InstanceId == targetId);
+            Permanent? permanent = player.Battlefield.FirstOrDefault(p => p.InstanceId == targetId);
             if (permanent != null)
             {
                 permanent.IsTapped = false;
@@ -130,8 +130,8 @@ public sealed class AddManaHandler : IEffectHandler
 
     public void Execute(GameState game, PlayerState caster, EffectDefinition effect, string? targetId)
     {
-        var colorStr = effect.ValueString ?? "C";
-        var color = colorStr switch
+        string colorStr = effect.ValueString ?? "C";
+        ManaColor color = colorStr switch
         {
             "W" => ManaColor.White,
             "U" => ManaColor.Blue,
@@ -152,13 +152,13 @@ public sealed class ReturnToHandHandler : IEffectHandler
     {
         if (targetId == null) return;
 
-        foreach (var player in game.Players)
+        foreach (PlayerState player in game.Players)
         {
-            var permanent = player.Battlefield.FirstOrDefault(p => p.InstanceId == targetId);
+            Permanent? permanent = player.Battlefield.FirstOrDefault(p => p.InstanceId == targetId);
             if (permanent != null)
             {
-                player.Battlefield.Remove(permanent);
-                var card = new CardInstance(permanent.Definition, player.PlayerId);
+                _ = player.Battlefield.Remove(permanent);
+                CardInstance card = new CardInstance(permanent.Definition, player.PlayerId);
                 player.Hand.Add(card);
                 return;
             }
@@ -174,13 +174,13 @@ public sealed class ExileHandler : IEffectHandler
     {
         if (targetId == null) return;
 
-        foreach (var player in game.Players)
+        foreach (PlayerState player in game.Players)
         {
-            var permanent = player.Battlefield.FirstOrDefault(p => p.InstanceId == targetId);
+            Permanent? permanent = player.Battlefield.FirstOrDefault(p => p.InstanceId == targetId);
             if (permanent != null)
             {
-                player.Battlefield.Remove(permanent);
-                var card = new CardInstance(permanent.Definition, player.PlayerId);
+                _ = player.Battlefield.Remove(permanent);
+                CardInstance card = new CardInstance(permanent.Definition, player.PlayerId);
                 player.Exile.Add(card);
                 return;
             }
@@ -194,7 +194,7 @@ public sealed class CreateTokenHandler : IEffectHandler
 
     public void Execute(GameState game, PlayerState caster, EffectDefinition effect, string? targetId)
     {
-        var tokenDef = new CardDefinition
+        CardDefinition tokenDef = new CardDefinition
         {
             Id = $"token_{Guid.NewGuid():N}",
             Name = effect.ValueString ?? "Token",
@@ -203,8 +203,8 @@ public sealed class CreateTokenHandler : IEffectHandler
             Toughness = effect.Value
         };
 
-        var tokenCard = new CardInstance(tokenDef, caster.PlayerId);
-        var permanent = new Permanent(tokenCard, game.TurnNumber);
+        CardInstance tokenCard = new CardInstance(tokenDef, caster.PlayerId);
+        Permanent permanent = new Permanent(tokenCard, game.TurnNumber);
         caster.Battlefield.Add(permanent);
     }
 }

@@ -1,5 +1,3 @@
-using MtgEngine.Shared.Enums;
-
 namespace MtgEngine.Domain.Entities;
 
 public sealed class PlayerState
@@ -32,7 +30,7 @@ public sealed class PlayerState
         if (Library.Count == 0)
             return null;
 
-        var card = Library[0];
+        CardInstance card = Library[0];
         Library.RemoveAt(0);
         Hand.Add(card);
         return card;
@@ -40,7 +38,7 @@ public sealed class PlayerState
 
     public void ShuffleLibrary()
     {
-        var rng = Random.Shared;
+        Random rng = Random.Shared;
         int n = Library.Count;
         while (n > 1)
         {

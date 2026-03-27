@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="../client/MtgClient/MtgClient.csproj" />
+  <Project Path="MtgEngine.Application/MtgEngine.Application.csproj" />
+  <Project Path="MtgEngine.Domain/MtgEngine.Domain.csproj" />
+  <Project Path="MtgEngine.Infrastructure/MtgEngine.Infrastructure.csproj" />
+  <Project Path="MtgEngine.Server/MtgEngine.Server.csproj" />
+  <Project Path="MtgEngine.Shared/MtgEngine.Shared.csproj" />
+  <Project Path="MtgEngine.Tests/MtgEngine.Tests.csproj" />
+</Solution>

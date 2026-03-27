@@ -54,7 +54,7 @@ public sealed class ManaPool
 
         // Pay remaining generic from colored mana (arbitrary order)
         ManaColor[] order = [ManaColor.White, ManaColor.Blue, ManaColor.Black, ManaColor.Red, ManaColor.Green];
-        foreach (var color in order)
+        foreach (ManaColor color in order)
         {
             if (genericRemaining <= 0) break;
             int available = GetAmount(color);

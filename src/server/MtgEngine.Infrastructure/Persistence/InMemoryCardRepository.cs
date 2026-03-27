@@ -18,7 +18,7 @@ public sealed class InMemoryCardRepository : ICardRepository
 
     public void RegisterRange(IEnumerable<CardDefinition> cards)
     {
-        foreach (var card in cards)
+        foreach (CardDefinition card in cards)
             Register(card);
     }
 

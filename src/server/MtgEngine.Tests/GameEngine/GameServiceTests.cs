@@ -18,7 +18,7 @@ public class GameServiceTests
     public GameServiceTests()
     {
         _cardRepo = new InMemoryCardRepository();
-        var eventBus = new EventBus();
+        EventBus eventBus = new EventBus();
         IEffectHandler[] handlers =
         [
             new DealDamageHandler(),
@@ -32,11 +32,11 @@ public class GameServiceTests
             new ReturnToHandHandler(),
             new ExileHandler()
         ];
-        var resolver = new EffectResolver(handlers);
-        var turnManager = new TurnManager(eventBus);
-        var stackManager = new StackManager(resolver, eventBus);
-        var combatManager = new CombatManager(eventBus);
-        var targetValidator = new TargetValidator();
+        EffectResolver resolver = new EffectResolver(handlers);
+        TurnManager turnManager = new TurnManager(eventBus);
+        StackManager stackManager = new StackManager(resolver, eventBus);
+        CombatManager combatManager = new CombatManager(eventBus);
+        TargetValidator targetValidator = new TargetValidator();
 
         _gameService = new GameService(
             _cardRepo, turnManager, stackManager, combatManager, targetValidator, eventBus);
@@ -80,7 +80,7 @@ public class GameServiceTests
 
     private List<string> BuildDeck(string commanderId)
     {
-        var deck = new List<string> { commanderId };
+        List<string> deck = new List<string> { commanderId };
         for (int i = 0; i < 99; i++)
             deck.Add("mountain");
         return deck;
@@ -89,7 +89,7 @@ public class GameServiceTests
     [Fact]
     public void CreateGame_ReturnsNewGame()
     {
-        var game = _gameService.CreateGame("Test Game", 4);
+        GameState game = _gameService.CreateGame("Test Game", 4);
 
         Assert.NotNull(game);
         Assert.Equal("Test Game", game.GameName);
@@ -100,8 +100,8 @@ public class GameServiceTests
     [Fact]
     public void CreateGame_InvalidMaxPlayers_Throws()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => _gameService.CreateGame("Test", 1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => _gameService.CreateGame("Test", 7));
+        _ = Assert.Throws<ArgumentOutOfRangeException>(() => _gameService.CreateGame("Test", 1));
+        _ = Assert.Throws<ArgumentOutOfRangeException>(() => _gameService.CreateGame("Test", 7));
     }
 
     [Fact]
@@ -109,23 +109,23 @@ public class GameServiceTests
     {
         RegisterCommander();
         RegisterBasicCards();
-        var game = _gameService.CreateGame("Test", 4);
-        var deck = BuildDeck("commander_a");
+        GameState game = _gameService.CreateGame("Test", 4);
+        List<string> deck = BuildDeck("commander_a");
 
-        var result = _gameService.JoinGame(game.GameId, "p1", "Player 1", deck, "commander_a");
+        Result result = _gameService.JoinGame(game.GameId, "p1", "Player 1", deck, "commander_a");
 
         Assert.True(result.Success);
-        Assert.Single(game.Players);
+        _ = Assert.Single(game.Players);
     }
 
     [Fact]
     public void JoinGame_WrongDeckSize_Fails()
     {
         RegisterCommander();
-        var game = _gameService.CreateGame("Test", 4);
-        var deck = new List<string> { "commander_a", "mountain" }; // Only 2 cards
+        GameState game = _gameService.CreateGame("Test", 4);
+        List<string> deck = new List<string> { "commander_a", "mountain" }; // Only 2 cards
 
-        var result = _gameService.JoinGame(game.GameId, "p1", "Player 1", deck, "commander_a");
+        Result result = _gameService.JoinGame(game.GameId, "p1", "Player 1", deck, "commander_a");
 
         Assert.False(result.Success);
         Assert.Contains("100", result.Error!);
@@ -143,10 +143,10 @@ public class GameServiceTests
             IsLegendary = false
         });
 
-        var game = _gameService.CreateGame("Test", 4);
-        var deck = BuildDeck("not_legendary");
+        GameState game = _gameService.CreateGame("Test", 4);
+        List<string> deck = BuildDeck("not_legendary");
 
-        var result = _gameService.JoinGame(game.GameId, "p1", "Player 1", deck, "not_legendary");
+        Result result = _gameService.JoinGame(game.GameId, "p1", "Player 1", deck, "not_legendary");
 
         Assert.False(result.Success);
         Assert.Contains("legendary", result.Error!, StringComparison.OrdinalIgnoreCase);
@@ -157,17 +157,17 @@ public class GameServiceTests
     {
         RegisterCommander();
         RegisterBasicCards();
-        var game = _gameService.CreateGame("Test", 4);
+        GameState game = _gameService.CreateGame("Test", 4);
 
-        _gameService.JoinGame(game.GameId, "p1", "Player 1", BuildDeck("commander_a"), "commander_a");
-        _gameService.JoinGame(game.GameId, "p2", "Player 2", BuildDeck("commander_a"), "commander_a");
+        _ = _gameService.JoinGame(game.GameId, "p1", "Player 1", BuildDeck("commander_a"), "commander_a");
+        _ = _gameService.JoinGame(game.GameId, "p2", "Player 2", BuildDeck("commander_a"), "commander_a");
 
-        var result = _gameService.StartGame(game.GameId, "p1");
+        Result result = _gameService.StartGame(game.GameId, "p1");
 
         Assert.True(result.Success);
         Assert.Equal(GameStatus.InProgress, game.Status);
         // Both players should have drawn 7 cards
-        foreach (var player in game.Players)
+        foreach (PlayerState player in game.Players)
         {
             Assert.Equal(7, player.Hand.Count);
         }
@@ -178,10 +178,10 @@ public class GameServiceTests
     {
         RegisterCommander();
         RegisterBasicCards();
-        var game = _gameService.CreateGame("Test", 4);
-        _gameService.JoinGame(game.GameId, "p1", "Player 1", BuildDeck("commander_a"), "commander_a");
+        GameState game = _gameService.CreateGame("Test", 4);
+        _ = _gameService.JoinGame(game.GameId, "p1", "Player 1", BuildDeck("commander_a"), "commander_a");
 
-        var result = _gameService.StartGame(game.GameId, "p1");
+        Result result = _gameService.StartGame(game.GameId, "p1");
 
         Assert.False(result.Success);
         Assert.Contains("2 players", result.Error!);
@@ -190,8 +190,8 @@ public class GameServiceTests
     [Fact]
     public void GetGame_ExistingGame_Returns()
     {
-        var game = _gameService.CreateGame("Test", 4);
-        var found = _gameService.GetGame(game.GameId);
+        GameState game = _gameService.CreateGame("Test", 4);
+        GameState? found = _gameService.GetGame(game.GameId);
 
         Assert.NotNull(found);
         Assert.Equal(game.GameId, found.GameId);
@@ -200,7 +200,7 @@ public class GameServiceTests
     [Fact]
     public void GetGame_NonExistent_ReturnsNull()
     {
-        var found = _gameService.GetGame("doesnt-exist");
+        GameState? found = _gameService.GetGame("doesnt-exist");
         Assert.Null(found);
     }
 }

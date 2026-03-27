@@ -1,7 +1,5 @@
 using MtgEngine.Domain.Entities;
-using MtgEngine.Domain.Interfaces;
 using MtgEngine.Shared.Enums;
-using MtgEngine.Shared.Models;
 
 namespace MtgEngine.Application.CardEngine;
 
@@ -47,7 +45,7 @@ public sealed class TargetValidator
 
     private static bool IsOwnedCreature(GameState game, string casterId, string targetId)
     {
-        var player = game.GetPlayer(casterId);
+        PlayerState? player = game.GetPlayer(casterId);
         return player?.Battlefield.Any(p => p.InstanceId == targetId && p.IsCreature) ?? false;
     }
 

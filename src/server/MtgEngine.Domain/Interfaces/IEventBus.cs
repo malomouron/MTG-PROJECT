@@ -1,5 +1,3 @@
-using MtgEngine.Domain.Entities;
-
 namespace MtgEngine.Domain.Interfaces;
 
 public interface IEventBus

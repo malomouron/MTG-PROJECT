@@ -19,7 +19,7 @@ public sealed class GameEndViewModel : ObservableObject
         get => _winnerId;
         set
         {
-            SetProperty(ref _winnerId, value);
+            _ = SetProperty(ref _winnerId, value);
             ResultMessage = IsWin ? "Victoire !" : $"Défaite — Gagnant : {value}";
         }
     }
@@ -29,7 +29,7 @@ public sealed class GameEndViewModel : ObservableObject
         get => _isWin;
         set
         {
-            SetProperty(ref _isWin, value);
+            _ = SetProperty(ref _isWin, value);
             ResultMessage = value ? "Victoire !" : $"Défaite — Gagnant : {WinnerId}";
         }
     }

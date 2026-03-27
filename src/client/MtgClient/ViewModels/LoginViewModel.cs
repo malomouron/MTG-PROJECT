@@ -1,6 +1,6 @@
-using System.Windows;
 using MtgClient.Helpers;
 using MtgClient.Services;
+using System.Windows;
 
 namespace MtgClient.ViewModels;
 

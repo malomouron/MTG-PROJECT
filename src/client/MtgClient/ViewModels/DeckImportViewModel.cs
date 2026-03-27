@@ -1,9 +1,10 @@
-using System.Collections.ObjectModel;
-using System.Windows;
 using MtgClient.Helpers;
 using MtgClient.Models;
 using MtgClient.Services;
 using MtgEngine.Shared.Protocol;
+using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
+using System.Windows;
 
 namespace MtgClient.ViewModels;
 
@@ -78,34 +79,34 @@ public sealed class DeckImportViewModel : ObservableObject
         }
 
         // Use a permissive set — server will reject unknown cards
-        var allNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        HashSet<string> allNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         // Add basic lands always
-        foreach (var land in new[] { "Mountain", "Forest", "Plains", "Swamp", "Island" })
-            allNames.Add(land);
+        foreach (string? land in new[] { "Mountain", "Forest", "Plains", "Swamp", "Island" })
+            _ = allNames.Add(land);
 
         // Parse all card names from the text to build the set
-        var lines = DeckText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        foreach (var line in lines)
+        string[] lines = DeckText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        foreach (string line in lines)
         {
-            var trimmed = line.Trim();
+            string trimmed = line.Trim();
             if (trimmed.StartsWith("//") || string.IsNullOrWhiteSpace(trimmed))
                 continue;
             if (trimmed.Equals("COMMANDER", StringComparison.OrdinalIgnoreCase) ||
                 trimmed.Equals("DECK", StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            var match = System.Text.RegularExpressions.Regex.Match(trimmed, @"^\s*\d+x?\s+(.+?)\s*$");
+            Match match = System.Text.RegularExpressions.Regex.Match(trimmed, @"^\s*\d+x?\s+(.+?)\s*$");
             if (match.Success)
-                allNames.Add(match.Groups[1].Value);
+                _ = allNames.Add(match.Groups[1].Value);
         }
 
-        var service = new DeckImportService(allNames);
+        DeckImportService service = new DeckImportService(allNames);
         _parsedDeck = service.Parse(DeckText);
         CardCount = _parsedDeck.TotalCards;
 
         if (_parsedDeck.Errors.Count > 0)
         {
-            foreach (var error in _parsedDeck.Errors)
+            foreach (string error in _parsedDeck.Errors)
                 ValidationErrors.Add(error);
         }
 
@@ -118,8 +119,8 @@ public sealed class DeckImportViewModel : ObservableObject
     {
         if (_parsedDeck == null || GameIdToJoin == null) return;
 
-        var deckCardIds = new List<string>();
-        foreach (var entry in _parsedDeck.Entries)
+        List<string> deckCardIds = new List<string>();
+        foreach (DeckEntry entry in _parsedDeck.Entries)
         {
             for (int i = 0; i < entry.Quantity; i++)
                 deckCardIds.Add(entry.CardId);

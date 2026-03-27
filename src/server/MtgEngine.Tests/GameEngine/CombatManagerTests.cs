@@ -17,7 +17,7 @@ public class CombatManagerTests
 
     private static GameState CreateCombatGame()
     {
-        var game = new GameState
+        GameState game = new GameState
         {
             GameName = "Test",
             Status = GameStatus.InProgress,
@@ -34,7 +34,7 @@ public class CombatManagerTests
     private static Permanent AddCreature(PlayerState player, string name, int power, int toughness,
         int turnEntered = 1, List<Keyword>? keywords = null)
     {
-        var def = new CardDefinition
+        CardDefinition def = new CardDefinition
         {
             Id = name.ToLowerInvariant().Replace(' ', '_'),
             Name = name,
@@ -43,7 +43,7 @@ public class CombatManagerTests
             Toughness = toughness,
             Keywords = keywords ?? []
         };
-        var perm = new Permanent(new CardInstance(def, player.PlayerId), turnEntered)
+        Permanent perm = new Permanent(new CardInstance(def, player.PlayerId), turnEntered)
         {
             HasSummoningSickness = false
         };
@@ -54,10 +54,10 @@ public class CombatManagerTests
     [Fact]
     public void DeclareAttackers_ValidAttacker_Succeeds()
     {
-        var game = CreateCombatGame();
-        var attacker = AddCreature(game.Players[0], "Bear", 2, 2);
+        GameState game = CreateCombatGame();
+        Permanent attacker = AddCreature(game.Players[0], "Bear", 2, 2);
 
-        var result = _combatManager.DeclareAttackers(game, "p1", [
+        bool result = _combatManager.DeclareAttackers(game, "p1", [
             new CombatAssignment
             {
                 AttackerId = attacker.InstanceId,
@@ -67,17 +67,17 @@ public class CombatManagerTests
         ]);
 
         Assert.True(result);
-        Assert.Single(game.CombatAttackers);
+        _ = Assert.Single(game.CombatAttackers);
     }
 
     [Fact]
     public void DeclareAttackers_TappedCreature_Fails()
     {
-        var game = CreateCombatGame();
-        var attacker = AddCreature(game.Players[0], "Bear", 2, 2);
+        GameState game = CreateCombatGame();
+        Permanent attacker = AddCreature(game.Players[0], "Bear", 2, 2);
         attacker.IsTapped = true;
 
-        var result = _combatManager.DeclareAttackers(game, "p1", [
+        bool result = _combatManager.DeclareAttackers(game, "p1", [
             new CombatAssignment
             {
                 AttackerId = attacker.InstanceId,
@@ -92,8 +92,8 @@ public class CombatManagerTests
     [Fact]
     public void DeclareAttackers_SummoningSick_Fails()
     {
-        var game = CreateCombatGame();
-        var def = new CardDefinition
+        GameState game = CreateCombatGame();
+        CardDefinition def = new CardDefinition
         {
             Id = "bear",
             Name = "Bear",
@@ -101,10 +101,10 @@ public class CombatManagerTests
             Power = 2,
             Toughness = 2
         };
-        var perm = new Permanent(new CardInstance(def, "p1"), game.TurnNumber); // entered this turn
+        Permanent perm = new Permanent(new CardInstance(def, "p1"), game.TurnNumber); // entered this turn
         game.Players[0].Battlefield.Add(perm);
 
-        var result = _combatManager.DeclareAttackers(game, "p1", [
+        bool result = _combatManager.DeclareAttackers(game, "p1", [
             new CombatAssignment
             {
                 AttackerId = perm.InstanceId,
@@ -119,8 +119,8 @@ public class CombatManagerTests
     [Fact]
     public void DeclareAttackers_HasteIgnoresSummoningSickness()
     {
-        var game = CreateCombatGame();
-        var def = new CardDefinition
+        GameState game = CreateCombatGame();
+        CardDefinition def = new CardDefinition
         {
             Id = "haste_creature",
             Name = "Hasty",
@@ -129,10 +129,10 @@ public class CombatManagerTests
             Toughness = 2,
             Keywords = [Keyword.Haste]
         };
-        var perm = new Permanent(new CardInstance(def, "p1"), game.TurnNumber);
+        Permanent perm = new Permanent(new CardInstance(def, "p1"), game.TurnNumber);
         game.Players[0].Battlefield.Add(perm);
 
-        var result = _combatManager.DeclareAttackers(game, "p1", [
+        bool result = _combatManager.DeclareAttackers(game, "p1", [
             new CombatAssignment
             {
                 AttackerId = perm.InstanceId,
@@ -147,10 +147,10 @@ public class CombatManagerTests
     [Fact]
     public void DeclareAttackers_TapsAttackers()
     {
-        var game = CreateCombatGame();
-        var attacker = AddCreature(game.Players[0], "Bear", 2, 2);
+        GameState game = CreateCombatGame();
+        Permanent attacker = AddCreature(game.Players[0], "Bear", 2, 2);
 
-        _combatManager.DeclareAttackers(game, "p1", [
+        _ = _combatManager.DeclareAttackers(game, "p1", [
             new CombatAssignment
             {
                 AttackerId = attacker.InstanceId,
@@ -165,10 +165,10 @@ public class CombatManagerTests
     [Fact]
     public void DeclareAttackers_VigilanceDoesNotTap()
     {
-        var game = CreateCombatGame();
-        var attacker = AddCreature(game.Players[0], "Angel", 4, 4, 1, [Keyword.Vigilance]);
+        GameState game = CreateCombatGame();
+        Permanent attacker = AddCreature(game.Players[0], "Angel", 4, 4, 1, [Keyword.Vigilance]);
 
-        _combatManager.DeclareAttackers(game, "p1", [
+        _ = _combatManager.DeclareAttackers(game, "p1", [
             new CombatAssignment
             {
                 AttackerId = attacker.InstanceId,
@@ -183,8 +183,8 @@ public class CombatManagerTests
     [Fact]
     public void ResolveCombatDamage_UnblockedCreature_DamagesPlayer()
     {
-        var game = CreateCombatGame();
-        var attacker = AddCreature(game.Players[0], "Bear", 2, 2);
+        GameState game = CreateCombatGame();
+        Permanent attacker = AddCreature(game.Players[0], "Bear", 2, 2);
 
         game.CombatAttackers.Add(new CombatAssignment
         {
@@ -201,9 +201,9 @@ public class CombatManagerTests
     [Fact]
     public void ResolveCombatDamage_BlockedCreature_MutualDamage()
     {
-        var game = CreateCombatGame();
-        var attacker = AddCreature(game.Players[0], "Bear", 2, 2);
-        var blocker = AddCreature(game.Players[1], "Wall", 1, 3);
+        GameState game = CreateCombatGame();
+        Permanent attacker = AddCreature(game.Players[0], "Bear", 2, 2);
+        Permanent blocker = AddCreature(game.Players[1], "Wall", 1, 3);
 
         game.CombatAttackers.Add(new CombatAssignment
         {
@@ -227,9 +227,9 @@ public class CombatManagerTests
     [Fact]
     public void ResolveCombatDamage_Trample_ExcessDamageGoesToPlayer()
     {
-        var game = CreateCombatGame();
-        var attacker = AddCreature(game.Players[0], "Trampler", 6, 6, 1, [Keyword.Trample]);
-        var blocker = AddCreature(game.Players[1], "Chump", 1, 1);
+        GameState game = CreateCombatGame();
+        Permanent attacker = AddCreature(game.Players[0], "Trampler", 6, 6, 1, [Keyword.Trample]);
+        Permanent blocker = AddCreature(game.Players[1], "Chump", 1, 1);
 
         game.CombatAttackers.Add(new CombatAssignment
         {
@@ -252,8 +252,8 @@ public class CombatManagerTests
     [Fact]
     public void ResolveCombatDamage_Lifelink_GainsLife()
     {
-        var game = CreateCombatGame();
-        var attacker = AddCreature(game.Players[0], "Lifelinker", 3, 3, 1, [Keyword.Lifelink]);
+        GameState game = CreateCombatGame();
+        Permanent attacker = AddCreature(game.Players[0], "Lifelinker", 3, 3, 1, [Keyword.Lifelink]);
 
         game.CombatAttackers.Add(new CombatAssignment
         {

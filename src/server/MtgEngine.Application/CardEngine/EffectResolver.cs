@@ -21,13 +21,13 @@ public sealed class EffectResolver
         EffectTrigger trigger,
         string? targetId)
     {
-        var matching = effects.Where(e => e.Trigger == trigger).ToList();
+        List<EffectDefinition> matching = effects.Where(e => e.Trigger == trigger).ToList();
 
-        foreach (var effect in matching)
+        foreach (EffectDefinition effect in matching)
         {
-            if (_handlers.TryGetValue(effect.Action, out var handler))
+            if (_handlers.TryGetValue(effect.Action, out IEffectHandler? handler))
             {
-                var resolvedTarget = ResolveTarget(effect.Target, targetId, caster.PlayerId);
+                string? resolvedTarget = ResolveTarget(effect.Target, targetId, caster.PlayerId);
                 handler.Execute(game, caster, effect, resolvedTarget);
             }
         }

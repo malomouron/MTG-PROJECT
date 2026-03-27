@@ -8,19 +8,19 @@ public sealed class EventBus : IEventBus
 
     public void Publish(IGameEvent gameEvent)
     {
-        var type = gameEvent.GetType();
-        if (_handlers.TryGetValue(type, out var handlers))
+        Type type = gameEvent.GetType();
+        if (_handlers.TryGetValue(type, out List<Delegate>? handlers))
         {
-            foreach (var handler in handlers.ToList())
+            foreach (Delegate? handler in handlers.ToList())
             {
-                handler.DynamicInvoke(gameEvent);
+                _ = handler.DynamicInvoke(gameEvent);
             }
         }
     }
 
     public void Subscribe<T>(Action<T> handler) where T : IGameEvent
     {
-        var type = typeof(T);
+        Type type = typeof(T);
         if (!_handlers.ContainsKey(type))
             _handlers[type] = [];
 

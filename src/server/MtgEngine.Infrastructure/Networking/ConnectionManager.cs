@@ -1,6 +1,6 @@
-using System.Collections.Concurrent;
 using MtgEngine.Domain.Interfaces;
 using MtgEngine.Shared.Protocol;
+using System.Collections.Concurrent;
 
 namespace MtgEngine.Infrastructure.Networking;
 
@@ -16,7 +16,7 @@ public sealed class ConnectionManager : IConnectionManager
 
     public void Remove(string connectionId)
     {
-        _connections.TryRemove(connectionId, out _);
+        _ = _connections.TryRemove(connectionId, out _);
     }
 
     public IClientConnection? GetByPlayerId(string playerId)
@@ -30,15 +30,15 @@ public sealed class ConnectionManager : IConnectionManager
     {
         if (!_gamePlayerMap.ContainsKey(gameId))
             _gamePlayerMap[gameId] = [];
-        _gamePlayerMap[gameId].Add(playerId);
+        _ = _gamePlayerMap[gameId].Add(playerId);
     }
 
     public async Task BroadcastToGameAsync(string gameId, ServerMessage message)
     {
-        if (!_gamePlayerMap.TryGetValue(gameId, out var playerIds))
+        if (!_gamePlayerMap.TryGetValue(gameId, out HashSet<string>? playerIds))
             return;
 
-        var tasks = playerIds
+        IEnumerable<Task> tasks = playerIds
             .Select(pid => GetByPlayerId(pid))
             .Where(c => c != null)
             .Select(c => c!.SendAsync(message));
@@ -48,7 +48,7 @@ public sealed class ConnectionManager : IConnectionManager
 
     public async Task SendToPlayerAsync(string playerId, ServerMessage message)
     {
-        var connection = GetByPlayerId(playerId);
+        IClientConnection? connection = GetByPlayerId(playerId);
         if (connection != null)
             await connection.SendAsync(message);
     }

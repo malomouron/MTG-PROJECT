@@ -1,10 +1,10 @@
-using System.Collections.ObjectModel;
-using System.Windows;
 using MtgClient.Helpers;
 using MtgClient.Models;
 using MtgClient.Services;
 using MtgEngine.Shared.Enums;
 using MtgEngine.Shared.Protocol;
+using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace MtgClient.ViewModels;
 
@@ -64,7 +64,7 @@ public sealed class GameViewModel : ObservableObject
         get => _selectedHandCard;
         set
         {
-            SetProperty(ref _selectedHandCard, value);
+            _ = SetProperty(ref _selectedHandCard, value);
             UpdateCanPlayCard();
         }
     }
@@ -162,7 +162,7 @@ public sealed class GameViewModel : ObservableObject
         Application.Current.Dispatcher.Invoke(() =>
         {
             Hand.Clear();
-            foreach (var card in msg.Hand)
+            foreach (HandCardDto card in msg.Hand)
                 Hand.Add(card);
         });
     }
@@ -173,7 +173,7 @@ public sealed class GameViewModel : ObservableObject
         {
             if (msg.EventType == "game_ended")
             {
-                var winnerId = msg.Data.GetValueOrDefault("winnerId")?.ToString();
+                string? winnerId = msg.Data.GetValueOrDefault("winnerId")?.ToString();
                 _navigation.NavigateTo<GameEndViewModel>(vm =>
                 {
                     vm.WinnerId = winnerId ?? "unknown";
@@ -214,7 +214,7 @@ public sealed class GameViewModel : ObservableObject
             : $"Tour {TurnNumber} — Phase : {CurrentPhase} — {(IsMyTurn ? "Votre tour" : $"Tour de {ActivePlayerId}")}";
 
         // Update my state
-        var me = state.Players.FirstOrDefault(p => p.PlayerId == MyPlayerId);
+        PlayerStateDto? me = state.Players.FirstOrDefault(p => p.PlayerId == MyPlayerId);
         if (me != null)
         {
             Life = me.Life;
@@ -222,18 +222,18 @@ public sealed class GameViewModel : ObservableObject
             ManaDisplay = FormatManaPool(me.ManaPool);
 
             MyBattlefield.Clear();
-            foreach (var perm in me.Battlefield) MyBattlefield.Add(perm);
+            foreach (PermanentDto perm in me.Battlefield) MyBattlefield.Add(perm);
 
             MyGraveyard.Clear();
-            foreach (var card in me.Graveyard) MyGraveyard.Add(card);
+            foreach (CardDto card in me.Graveyard) MyGraveyard.Add(card);
 
             MyCommandZone.Clear();
-            foreach (var card in me.CommandZone) MyCommandZone.Add(card);
+            foreach (CardDto card in me.CommandZone) MyCommandZone.Add(card);
         }
 
         // Update opponents
         Opponents.Clear();
-        foreach (var player in state.Players.Where(p => p.PlayerId != MyPlayerId))
+        foreach (PlayerStateDto? player in state.Players.Where(p => p.PlayerId != MyPlayerId))
         {
             Opponents.Add(new OpponentViewModel
             {
@@ -251,7 +251,7 @@ public sealed class GameViewModel : ObservableObject
 
         // Update stack
         Stack.Clear();
-        foreach (var item in state.Stack) Stack.Add(item);
+        foreach (StackItemDto item in state.Stack) Stack.Add(item);
 
         // Update action availability
         CanDeclareAttackers = IsMyTurn && CurrentPhase == Phase.DeclareAttackers;
@@ -268,7 +268,7 @@ public sealed class GameViewModel : ObservableObject
 
     private static string FormatManaPool(ManaPoolDto pool)
     {
-        var parts = new List<string>();
+        List<string> parts = new List<string>();
         if (pool.White > 0) parts.Add($"W:{pool.White}");
         if (pool.Blue > 0) parts.Add($"U:{pool.Blue}");
         if (pool.Black > 0) parts.Add($"B:{pool.Black}");
@@ -312,10 +312,10 @@ public sealed class GameViewModel : ObservableObject
         if (SelectedAttackerIds.Count == 0) return;
 
         // Default target: first opponent
-        var defaultTarget = Opponents.FirstOrDefault(o => !o.IsEliminated)?.PlayerId;
+        string? defaultTarget = Opponents.FirstOrDefault(o => !o.IsEliminated)?.PlayerId;
         if (defaultTarget == null) return;
 
-        var attackers = SelectedAttackerIds.Select(id => new AttackerDeclaration
+        List<AttackerDeclaration> attackers = SelectedAttackerIds.Select(id => new AttackerDeclaration
         {
             CreatureId = id,
             DefendingPlayerId = SelectedTargetId ?? defaultTarget
@@ -334,7 +334,7 @@ public sealed class GameViewModel : ObservableObject
     private async Task DeclareBlockersAsync()
     {
         // Blocker mappings stored as "blockerId:attackerId"
-        var blockers = SelectedBlockerMappings
+        List<BlockerDeclaration> blockers = SelectedBlockerMappings
             .Select(m => m.Split(':'))
             .Where(parts => parts.Length == 2)
             .Select(parts => new BlockerDeclaration
@@ -380,7 +380,7 @@ public sealed class GameViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(ChatInput)) return;
 
-        var json = System.Text.Json.JsonSerializer.Serialize(new
+        string json = System.Text.Json.JsonSerializer.Serialize(new
         {
             type = "chat",
             gameId = GameId,

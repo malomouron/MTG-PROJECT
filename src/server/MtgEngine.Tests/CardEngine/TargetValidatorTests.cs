@@ -11,7 +11,7 @@ public class TargetValidatorTests
 
     private static GameState CreateGame()
     {
-        var game = new GameState
+        GameState game = new GameState
         {
             GameName = "Test",
             Status = GameStatus.InProgress,
@@ -26,36 +26,36 @@ public class TargetValidatorTests
     [Fact]
     public void None_AlwaysValid()
     {
-        var game = CreateGame();
+        GameState game = CreateGame();
         Assert.True(_validator.IsValidTarget(game, game.Players[0], TargetType.None, null));
     }
 
     [Fact]
     public void Self_AlwaysValid()
     {
-        var game = CreateGame();
+        GameState game = CreateGame();
         Assert.True(_validator.IsValidTarget(game, game.Players[0], TargetType.Self, null));
     }
 
     [Fact]
     public void AnyPlayer_ValidWithPlayerId()
     {
-        var game = CreateGame();
+        GameState game = CreateGame();
         Assert.True(_validator.IsValidTarget(game, game.Players[0], TargetType.AnyPlayer, "p2"));
     }
 
     [Fact]
     public void AnyPlayer_InvalidWithNoTarget()
     {
-        var game = CreateGame();
+        GameState game = CreateGame();
         Assert.False(_validator.IsValidTarget(game, game.Players[0], TargetType.AnyPlayer, null));
     }
 
     [Fact]
     public void AnyCreature_ValidWithCreatureOnBattlefield()
     {
-        var game = CreateGame();
-        var creatureDef = new CardDefinition
+        GameState game = CreateGame();
+        CardDefinition creatureDef = new CardDefinition
         {
             Id = "bear",
             Name = "Bear",
@@ -63,7 +63,7 @@ public class TargetValidatorTests
             Power = 2,
             Toughness = 2
         };
-        var perm = new Permanent(new CardInstance(creatureDef, "p2"), 1);
+        Permanent perm = new Permanent(new CardInstance(creatureDef, "p2"), 1);
         game.Players[1].Battlefield.Add(perm);
 
         Assert.True(_validator.IsValidTarget(game, game.Players[0], TargetType.AnyCreature, perm.InstanceId));
@@ -72,21 +72,21 @@ public class TargetValidatorTests
     [Fact]
     public void AnyCreature_InvalidWithNonExistentId()
     {
-        var game = CreateGame();
+        GameState game = CreateGame();
         Assert.False(_validator.IsValidTarget(game, game.Players[0], TargetType.AnyCreature, "nonexistent"));
     }
 
     [Fact]
     public void Opponent_ValidWithOpponentId()
     {
-        var game = CreateGame();
+        GameState game = CreateGame();
         Assert.True(_validator.IsValidTarget(game, game.Players[0], TargetType.Opponent, "p2"));
     }
 
     [Fact]
     public void Opponent_InvalidWithSelfId()
     {
-        var game = CreateGame();
+        GameState game = CreateGame();
         Assert.False(_validator.IsValidTarget(game, game.Players[0], TargetType.Opponent, "p1"));
     }
 }

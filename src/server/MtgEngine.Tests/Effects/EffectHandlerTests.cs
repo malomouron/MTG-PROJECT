@@ -9,7 +9,7 @@ public class EffectHandlerTests
 {
     private static GameState CreateGame()
     {
-        var game = new GameState
+        GameState game = new GameState
         {
             GameName = "Test",
             Status = GameStatus.InProgress,
@@ -24,9 +24,9 @@ public class EffectHandlerTests
     [Fact]
     public void DealDamage_ReducesPlayerLife()
     {
-        var game = CreateGame();
-        var handler = new DealDamageHandler();
-        var effect = new EffectDefinition
+        GameState game = CreateGame();
+        DealDamageHandler handler = new DealDamageHandler();
+        EffectDefinition effect = new EffectDefinition
         {
             Trigger = EffectTrigger.OnCast,
             Action = EffectAction.DealDamage,
@@ -42,9 +42,9 @@ public class EffectHandlerTests
     [Fact]
     public void DealDamage_MarksCreatureDamage()
     {
-        var game = CreateGame();
-        var handler = new DealDamageHandler();
-        var creatureDef = new CardDefinition
+        GameState game = CreateGame();
+        DealDamageHandler handler = new DealDamageHandler();
+        CardDefinition creatureDef = new CardDefinition
         {
             Id = "bear",
             Name = "Bear",
@@ -52,10 +52,10 @@ public class EffectHandlerTests
             Power = 2,
             Toughness = 2
         };
-        var perm = new Permanent(new CardInstance(creatureDef, "p2"), 1);
+        Permanent perm = new Permanent(new CardInstance(creatureDef, "p2"), 1);
         game.Players[1].Battlefield.Add(perm);
 
-        var effect = new EffectDefinition
+        EffectDefinition effect = new EffectDefinition
         {
             Trigger = EffectTrigger.OnCast,
             Action = EffectAction.DealDamage,
@@ -71,9 +71,9 @@ public class EffectHandlerTests
     [Fact]
     public void GainLife_IncreasesLife()
     {
-        var game = CreateGame();
-        var handler = new GainLifeHandler();
-        var effect = new EffectDefinition
+        GameState game = CreateGame();
+        GainLifeHandler handler = new GainLifeHandler();
+        EffectDefinition effect = new EffectDefinition
         {
             Trigger = EffectTrigger.OnCast,
             Action = EffectAction.GainLife,
@@ -88,9 +88,9 @@ public class EffectHandlerTests
     [Fact]
     public void DrawCard_DrawsCards()
     {
-        var game = CreateGame();
-        var handler = new DrawCardHandler();
-        var cardDef = new CardDefinition
+        GameState game = CreateGame();
+        DrawCardHandler handler = new DrawCardHandler();
+        CardDefinition cardDef = new CardDefinition
         {
             Id = "card",
             Name = "Card",
@@ -100,7 +100,7 @@ public class EffectHandlerTests
         game.Players[0].Library.Add(new CardInstance(cardDef, "p1"));
         game.Players[0].Library.Add(new CardInstance(cardDef, "p1"));
 
-        var effect = new EffectDefinition
+        EffectDefinition effect = new EffectDefinition
         {
             Trigger = EffectTrigger.OnCast,
             Action = EffectAction.DrawCard,
@@ -110,16 +110,16 @@ public class EffectHandlerTests
         handler.Execute(game, game.Players[0], effect, null);
 
         Assert.Equal(2, game.Players[0].Hand.Count);
-        Assert.Single(game.Players[0].Library);
+        _ = Assert.Single(game.Players[0].Library);
     }
 
     [Fact]
     public void DrawCard_EmptyLibrary_EliminatesPlayer()
     {
-        var game = CreateGame();
-        var handler = new DrawCardHandler();
+        GameState game = CreateGame();
+        DrawCardHandler handler = new DrawCardHandler();
 
-        var effect = new EffectDefinition
+        EffectDefinition effect = new EffectDefinition
         {
             Trigger = EffectTrigger.OnCast,
             Action = EffectAction.DrawCard,
@@ -134,9 +134,9 @@ public class EffectHandlerTests
     [Fact]
     public void Destroy_RemovesFromBattlefield()
     {
-        var game = CreateGame();
-        var handler = new DestroyHandler();
-        var creatureDef = new CardDefinition
+        GameState game = CreateGame();
+        DestroyHandler handler = new DestroyHandler();
+        CardDefinition creatureDef = new CardDefinition
         {
             Id = "bear",
             Name = "Bear",
@@ -144,10 +144,10 @@ public class EffectHandlerTests
             Power = 2,
             Toughness = 2
         };
-        var perm = new Permanent(new CardInstance(creatureDef, "p2"), 1);
+        Permanent perm = new Permanent(new CardInstance(creatureDef, "p2"), 1);
         game.Players[1].Battlefield.Add(perm);
 
-        var effect = new EffectDefinition
+        EffectDefinition effect = new EffectDefinition
         {
             Trigger = EffectTrigger.OnCast,
             Action = EffectAction.Destroy,
@@ -157,15 +157,15 @@ public class EffectHandlerTests
         handler.Execute(game, game.Players[0], effect, perm.InstanceId);
 
         Assert.Empty(game.Players[1].Battlefield);
-        Assert.Single(game.Players[1].Graveyard);
+        _ = Assert.Single(game.Players[1].Graveyard);
     }
 
     [Fact]
     public void Tap_TapsTarget()
     {
-        var game = CreateGame();
-        var handler = new TapHandler();
-        var creatureDef = new CardDefinition
+        GameState game = CreateGame();
+        TapHandler handler = new TapHandler();
+        CardDefinition creatureDef = new CardDefinition
         {
             Id = "bear",
             Name = "Bear",
@@ -173,10 +173,10 @@ public class EffectHandlerTests
             Power = 2,
             Toughness = 2
         };
-        var perm = new Permanent(new CardInstance(creatureDef, "p2"), 1);
+        Permanent perm = new Permanent(new CardInstance(creatureDef, "p2"), 1);
         game.Players[1].Battlefield.Add(perm);
 
-        var effect = new EffectDefinition
+        EffectDefinition effect = new EffectDefinition
         {
             Trigger = EffectTrigger.OnCast,
             Action = EffectAction.Tap,
@@ -191,9 +191,9 @@ public class EffectHandlerTests
     [Fact]
     public void Exile_RemovesFromBattlefieldToExile()
     {
-        var game = CreateGame();
-        var handler = new ExileHandler();
-        var creatureDef = new CardDefinition
+        GameState game = CreateGame();
+        ExileHandler handler = new ExileHandler();
+        CardDefinition creatureDef = new CardDefinition
         {
             Id = "bear",
             Name = "Bear",
@@ -201,10 +201,10 @@ public class EffectHandlerTests
             Power = 2,
             Toughness = 2
         };
-        var perm = new Permanent(new CardInstance(creatureDef, "p2"), 1);
+        Permanent perm = new Permanent(new CardInstance(creatureDef, "p2"), 1);
         game.Players[1].Battlefield.Add(perm);
 
-        var effect = new EffectDefinition
+        EffectDefinition effect = new EffectDefinition
         {
             Trigger = EffectTrigger.OnCast,
             Action = EffectAction.Exile,
@@ -214,6 +214,6 @@ public class EffectHandlerTests
         handler.Execute(game, game.Players[0], effect, perm.InstanceId);
 
         Assert.Empty(game.Players[1].Battlefield);
-        Assert.Single(game.Players[1].Exile);
+        _ = Assert.Single(game.Players[1].Exile);
     }
 }

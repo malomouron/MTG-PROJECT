@@ -1,9 +1,9 @@
+using MtgEngine.Domain.Interfaces;
+using MtgEngine.Shared.Protocol;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using MtgEngine.Domain.Interfaces;
-using MtgEngine.Shared.Protocol;
 
 namespace MtgEngine.Infrastructure.Networking;
 
@@ -31,8 +31,8 @@ public sealed class WebSocketClientConnection : IClientConnection, IDisposable
         if (_webSocket.State != WebSocketState.Open)
             return;
 
-        var json = JsonSerializer.Serialize(message, message.GetType(), JsonOptions);
-        var buffer = Encoding.UTF8.GetBytes(json);
+        string json = JsonSerializer.Serialize(message, message.GetType(), JsonOptions);
+        byte[] buffer = Encoding.UTF8.GetBytes(json);
         await _webSocket.SendAsync(
             new ArraySegment<byte>(buffer),
             WebSocketMessageType.Text,
@@ -42,8 +42,8 @@ public sealed class WebSocketClientConnection : IClientConnection, IDisposable
 
     public async Task<string?> ReceiveAsync(CancellationToken ct)
     {
-        var buffer = new byte[8192];
-        using var ms = new MemoryStream();
+        byte[] buffer = new byte[8192];
+        using MemoryStream ms = new MemoryStream();
 
         WebSocketReceiveResult result;
         do

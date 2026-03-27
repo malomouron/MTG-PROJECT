@@ -1,4 +1,3 @@
-using System.Net.WebSockets;
 using MtgEngine.Application.CardEngine;
 using MtgEngine.Application.Effects;
 using MtgEngine.Application.GameEngine;
@@ -7,8 +6,10 @@ using MtgEngine.Domain.Interfaces;
 using MtgEngine.Infrastructure.Mods;
 using MtgEngine.Infrastructure.Networking;
 using MtgEngine.Infrastructure.Persistence;
+using MtgEngine.Shared.Models;
+using System.Net.WebSockets;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Register services — Dependency Injection (SOLID: Dependency Inversion)
 builder.Services.AddSingleton<ICardRepository, InMemoryCardRepository>();
@@ -39,22 +40,22 @@ builder.Services.AddSingleton<GameService>();
 builder.Services.AddSingleton<ModLoader>();
 builder.Services.AddSingleton<MessageRouter>();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Load core cards on startup
-var cardLoader = app.Services.GetRequiredService<CardLoader>();
-var cardRepo = app.Services.GetRequiredService<ICardRepository>();
-var cardsPath = Path.Combine(app.Environment.ContentRootPath, "..", "..", "cards");
+CardLoader cardLoader = app.Services.GetRequiredService<CardLoader>();
+ICardRepository cardRepo = app.Services.GetRequiredService<ICardRepository>();
+string cardsPath = Path.Combine(app.Environment.ContentRootPath, "..", "..", "..", "cards");
 if (Directory.Exists(cardsPath))
 {
-    var cards = cardLoader.LoadFromDirectory(cardsPath);
+    IReadOnlyList<CardDefinition> cards = cardLoader.LoadFromDirectory(cardsPath);
     cardRepo.RegisterRange(cards);
     Console.WriteLine($"Loaded {cards.Count} core cards from {cardsPath}");
 }
 
 // Load mods
-var modLoader = app.Services.GetRequiredService<ModLoader>();
-var modsPath = Path.Combine(app.Environment.ContentRootPath, "..", "..", "mods");
+ModLoader modLoader = app.Services.GetRequiredService<ModLoader>();
+string modsPath = Path.Combine(app.Environment.ContentRootPath, "..", "..", "..", "mods");
 modLoader.LoadModsFromDirectory(modsPath);
 
 // Enable WebSockets
@@ -80,10 +81,10 @@ app.Map("/ws", async (HttpContext context) =>
         return;
     }
 
-    var ws = await context.WebSockets.AcceptWebSocketAsync();
-    var connection = new WebSocketClientConnection(ws);
-    var connManager = context.RequestServices.GetRequiredService<ConnectionManager>();
-    var router = context.RequestServices.GetRequiredService<MessageRouter>();
+    WebSocket ws = await context.WebSockets.AcceptWebSocketAsync();
+    WebSocketClientConnection connection = new WebSocketClientConnection(ws);
+    ConnectionManager connManager = context.RequestServices.GetRequiredService<ConnectionManager>();
+    MessageRouter router = context.RequestServices.GetRequiredService<MessageRouter>();
 
     connManager.Add(connection);
     Console.WriteLine($"Client connected: {connection.ConnectionId}");
@@ -92,7 +93,7 @@ app.Map("/ws", async (HttpContext context) =>
     {
         while (ws.State == WebSocketState.Open)
         {
-            var message = await connection.ReceiveAsync(context.RequestAborted);
+            string? message = await connection.ReceiveAsync(context.RequestAborted);
             if (message == null) break;
 
             await router.HandleMessageAsync(connection, message);

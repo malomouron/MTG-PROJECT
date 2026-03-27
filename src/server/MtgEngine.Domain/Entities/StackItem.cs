@@ -1,4 +1,3 @@
-using MtgEngine.Shared.Enums;
 using MtgEngine.Shared.Models;
 
 namespace MtgEngine.Domain.Entities;

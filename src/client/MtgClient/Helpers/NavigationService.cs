@@ -29,7 +29,7 @@ public class NavigationService : ObservableObject, INavigationService
 
     public void NavigateTo<TViewModel>(Action<TViewModel> configure) where TViewModel : ObservableObject
     {
-        var vm = (TViewModel)_viewModelFactory(typeof(TViewModel));
+        TViewModel vm = (TViewModel)_viewModelFactory(typeof(TViewModel));
         configure(vm);
         CurrentView = vm;
     }

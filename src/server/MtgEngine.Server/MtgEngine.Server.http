@@ -1,6 +1,9 @@
-@MtgEngine.Server_HostAddress = http://localhost:5203
+@MtgEngine.Server_HostAddress = https://localhost:5000
 
-GET {{MtgEngine.Server_HostAddress}}/weatherforecast/
+GET {{MtgEngine.Server_HostAddress}}/api/cards
 Accept: application/json
 
 ###
+
+GET {{MtgEngine.Server_HostAddress}}/health
+Accept: application/json
