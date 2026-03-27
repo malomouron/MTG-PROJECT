@@ -1,0 +1,327 @@
+<UserControl x:Class="MtgClient.Views.GameView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:MtgClient.ViewModels">
+
+    <Grid Background="#1a1a2e">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>       <!-- Top bar -->
+            <RowDefinition Height="*"/>          <!-- Opponents -->
+            <RowDefinition Height="2*"/>         <!-- My battlefield -->
+            <RowDefinition Height="Auto"/>       <!-- Hand -->
+            <RowDefinition Height="Auto"/>       <!-- Action bar -->
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="250"/>      <!-- Stack + Chat -->
+        </Grid.ColumnDefinitions>
+
+        <!--====== TOP BAR ======-->
+        <Border Grid.Row="0" Grid.ColumnSpan="2" Background="#16213e" Padding="12,8">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Left" FontSize="14" Foreground="#e94560" FontWeight="Bold">
+                    <Run Text="Tour "/>
+                    <Run Text="{Binding TurnNumber, Mode=OneWay}"/>
+                </TextBlock>
+                <TextBlock DockPanel.Dock="Left" Foreground="#0fa3b1" FontSize="14" Margin="20,0">
+                    <Run Text="Phase : "/>
+                    <Run Text="{Binding CurrentPhase, Mode=OneWay}"/>
+                </TextBlock>
+                <TextBlock DockPanel.Dock="Left" Text="{Binding StatusMessage}" 
+                           Foreground="#cccccc" FontSize="13" Margin="20,0"/>
+
+                <!-- My stats -->
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <TextBlock Foreground="White" FontSize="14" Margin="0,0,16,0">
+                        <Run Text="❤ "/>
+                        <Run Text="{Binding Life, Mode=OneWay}"/>
+                    </TextBlock>
+                    <TextBlock Foreground="#8899aa" FontSize="14" Margin="0,0,16,0">
+                        <Run Text="📚 "/>
+                        <Run Text="{Binding LibraryCount, Mode=OneWay}"/>
+                    </TextBlock>
+                    <TextBlock Text="{Binding ManaDisplay}" Foreground="#0fa3b1" FontSize="13"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!--====== OPPONENTS AREA ======-->
+        <ItemsControl Grid.Row="1" Grid.Column="0"
+                      ItemsSource="{Binding Opponents}"
+                      Margin="8,4">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="1"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Background="#16213e" CornerRadius="8"
+                            Margin="4" Padding="10">
+                        <DockPanel>
+                            <!-- Opponent header -->
+                            <StackPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                                <TextBlock FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{Binding IsEliminated, Converter={StaticResource EliminatedColorConverter}}">
+                                    <Run Text="{Binding PlayerName, Mode=OneWay}"/>
+                                </TextBlock>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Foreground="White" FontSize="12" Margin="0,0,12,0">
+                                        <Run Text="❤ "/><Run Text="{Binding Life, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="#8899aa" FontSize="12" Margin="0,0,12,0">
+                                        <Run Text="🃏 "/><Run Text="{Binding HandCount, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="#8899aa" FontSize="12">
+                                        <Run Text="📚 "/><Run Text="{Binding LibraryCount, Mode=OneWay}"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Opponent battlefield -->
+                            <ItemsControl ItemsSource="{Binding Battlefield}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource CardMini}"
+                                                Opacity="{Binding IsTapped, Converter={StaticResource TappedOpacityConverter}}">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontSize="9"
+                                                           Foreground="White" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock FontSize="9" Foreground="#8899aa"
+                                                           Visibility="{Binding Power, Converter={StaticResource NullToCollapsedConverter}}">
+                                                    <Run Text="{Binding Power, Mode=OneWay}"/>
+                                                    <Run Text="/"/>
+                                                    <Run Text="{Binding Toughness, Mode=OneWay}"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </DockPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!--====== MY BATTLEFIELD ======-->
+        <Border Grid.Row="2" Grid.Column="0" Margin="8,4">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Mon champ de bataille"
+                           FontSize="13" Foreground="#8899aa" Margin="4,0,0,4"/>
+
+                <!-- Command zone -->
+                <StackPanel DockPanel.Dock="Left" Width="100" Margin="0,0,8,0">
+                    <TextBlock Text="Zone de commandement" FontSize="10"
+                               Foreground="#8899aa" Margin="0,0,0,4"/>
+                    <ItemsControl ItemsSource="{Binding MyCommandZone}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource CardNormal}" Margin="0,2">
+                                    <TextBlock Text="{Binding Name}" FontSize="11"
+                                               Foreground="#e94560" FontWeight="Bold"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <!-- Battlefield permanents -->
+                <ItemsControl ItemsSource="{Binding MyBattlefield}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource CardNormal}"
+                                    Margin="3"
+                                    Opacity="{Binding IsTapped, Converter={StaticResource TappedOpacityConverter}}"
+                                    Tag="{Binding InstanceId}">
+                                <Border.InputBindings>
+                                    <MouseBinding MouseAction="LeftClick"
+                                                  Command="{Binding DataContext.ActivateAbilityCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                    <MouseBinding MouseAction="RightClick"
+                                                  Command="{Binding DataContext.SelectTargetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                  CommandParameter="{Binding InstanceId}"/>
+                                </Border.InputBindings>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}" FontSize="11"
+                                               Foreground="White" TextTrimming="CharacterEllipsis"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock FontSize="10" Foreground="#8899aa"
+                                                   Visibility="{Binding Power, Converter={StaticResource NullToCollapsedConverter}}">
+                                            <Run Text="{Binding Power, Mode=OneWay}"/>/<Run Text="{Binding Toughness, Mode=OneWay}"/>
+                                        </TextBlock>
+                                        <TextBlock Text=" (Tap)" FontSize="9" Foreground="#e94560"
+                                                   Visibility="{Binding IsTapped, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                        <TextBlock Text=" 🩸" FontSize="9" Foreground="#e94560"
+                                                   Visibility="{Binding HasSummoningSickness, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </DockPanel>
+        </Border>
+
+        <!--====== HAND ======-->
+        <Border Grid.Row="3" Grid.Column="0" Background="#0f3460"
+                Padding="8,6" Margin="8,0">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Left" Text="Main" FontSize="13"
+                           Foreground="#8899aa" VerticalAlignment="Center"
+                           Margin="0,0,12,0"/>
+                <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding Hand}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource CardHand}"
+                                        Margin="3,0"
+                                        BorderBrush="{Binding InstanceId, Converter={StaticResource SelectedCardBorderConverter}}"
+                                        Tag="{Binding}">
+                                    <Border.InputBindings>
+                                        <MouseBinding MouseAction="LeftDoubleClick"
+                                                      Command="{Binding DataContext.PlayCardCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                    </Border.InputBindings>
+                                    <StackPanel Width="90">
+                                        <TextBlock Text="{Binding Name}" FontSize="10"
+                                                   Foreground="White" TextTrimming="CharacterEllipsis"
+                                                   FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding Cost}" FontSize="9"
+                                                   Foreground="#0fa3b1"/>
+                                        <TextBlock Text="{Binding CardType}" FontSize="9"
+                                                   Foreground="#8899aa"/>
+                                        <TextBlock FontSize="9" Foreground="#cccccc"
+                                                   Visibility="{Binding Power, Converter={StaticResource NullToCollapsedConverter}}">
+                                            <Run Text="{Binding Power, Mode=OneWay}"/>/<Run Text="{Binding Toughness, Mode=OneWay}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!--====== ACTION BAR ======-->
+        <Border Grid.Row="4" Grid.Column="0" Background="#16213e" Padding="12,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="Passer la priorité"
+                        Command="{Binding PassPriorityCommand}"
+                        Style="{StaticResource SecondaryButton}"
+                        Height="34" Margin="4,0"/>
+                <Button Content="Déclarer attaquants"
+                        Command="{Binding DeclareAttackersCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        Visibility="{Binding CanDeclareAttackers, Converter={StaticResource BoolToVisibilityConverter}}"
+                        Height="34" Margin="4,0"/>
+                <Button Content="Déclarer bloqueurs"
+                        Command="{Binding DeclareBlockersCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        Visibility="{Binding CanDeclareBlockers, Converter={StaticResource BoolToVisibilityConverter}}"
+                        Height="34" Margin="4,0"/>
+                <Button Content="Lancer la partie"
+                        Command="{Binding StartGameCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        Visibility="{Binding GameStatus, Converter={StaticResource WaitingToVisibilityConverter}}"
+                        Height="34" Margin="4,0"/>
+            </StackPanel>
+        </Border>
+
+        <!--====== RIGHT PANEL: Stack + Chat ======-->
+        <Border Grid.Row="1" Grid.RowSpan="4" Grid.Column="1"
+                Background="#16213e" Padding="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Stack (US-011) -->
+                <DockPanel Grid.Row="0">
+                    <TextBlock DockPanel.Dock="Top" Text="Stack (Pile)"
+                               FontSize="14" FontWeight="Bold"
+                               Foreground="#e94560" Margin="0,0,0,8"/>
+                    <ListView ItemsSource="{Binding Stack}"
+                              Background="Transparent" BorderThickness="0"
+                              Foreground="#cccccc" FontSize="11">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#0f3460" CornerRadius="4"
+                                        Padding="8,4" Margin="0,2">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Name}"
+                                                   Foreground="White" FontWeight="SemiBold"/>
+                                        <TextBlock Foreground="#8899aa" FontSize="10">
+                                            <Run Text="par "/>
+                                            <Run Text="{Binding ControllerId, Mode=OneWay}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </DockPanel>
+
+                <Separator Grid.Row="1" Background="#2a2a4a" Margin="0,8"/>
+
+                <!-- Chat (US-014) -->
+                <DockPanel Grid.Row="2">
+                    <TextBlock DockPanel.Dock="Top" Text="Chat"
+                               FontSize="14" FontWeight="Bold"
+                               Foreground="#0fa3b1" Margin="0,0,0,8"/>
+                    <ListView ItemsSource="{Binding ChatMessages}"
+                              Background="Transparent" BorderThickness="0"
+                              Foreground="#cccccc" FontSize="11">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock TextWrapping="Wrap">
+                                    <Run Text="{Binding Sender, Mode=OneWay}" FontWeight="Bold" Foreground="#0fa3b1"/>
+                                    <Run Text=": "/>
+                                    <Run Text="{Binding Text, Mode=OneWay}"/>
+                                </TextBlock>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </DockPanel>
+
+                <!-- Chat input -->
+                <DockPanel Grid.Row="3" Margin="0,4,0,0">
+                    <Button Content="→" DockPanel.Dock="Right"
+                            Command="{Binding SendChatCommand}"
+                            Width="32" Height="28"
+                            Style="{StaticResource PrimaryButton}"/>
+                    <TextBox Text="{Binding ChatInput, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource InputTextBox}"
+                             FontSize="11" Height="28"/>
+                </DockPanel>
+            </Grid>
+        </Border>
+
+        <!-- Error overlay -->
+        <Border Grid.Row="0" Grid.ColumnSpan="2"
+                Background="#e94560" Padding="8,4"
+                VerticalAlignment="Bottom"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="White"
+                       FontSize="12" HorizontalAlignment="Center"/>
+        </Border>
+    </Grid>
+</UserControl>

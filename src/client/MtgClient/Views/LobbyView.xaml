@@ -1,0 +1,109 @@
+<UserControl x:Class="MtgClient.Views.LobbyView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:MtgClient.ViewModels">
+
+    <Grid Background="#1a1a2e">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="300"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Game list -->
+        <DockPanel Grid.Column="0" Margin="20">
+            <TextBlock Text="Parties disponibles" DockPanel.Dock="Top"
+                       FontSize="22" FontWeight="Bold" Foreground="#e94560"
+                       Margin="0,0,0,16"/>
+
+            <Button Content="Importer un Deck" DockPanel.Dock="Bottom"
+                    Command="{Binding ImportDeckCommand}"
+                    Style="{StaticResource SecondaryButton}"
+                    Margin="0,12,0,0" Height="36"/>
+
+            <ListView ItemsSource="{Binding Games}"
+                      SelectedItem="{Binding SelectedGame}"
+                      Background="Transparent" BorderThickness="0"
+                      Foreground="#cccccc">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="#16213e" CornerRadius="8"
+                                Padding="16,12" Margin="0,4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{Binding GameName}"
+                                               FontSize="16" FontWeight="SemiBold"
+                                               Foreground="White"/>
+                                    <TextBlock Foreground="#8899aa" FontSize="12">
+                                        <Run Text="{Binding PlayerCount, Mode=OneWay}"/>
+                                        <Run Text="/"/>
+                                        <Run Text="{Binding MaxPlayers, Mode=OneWay}"/>
+                                        <Run Text=" joueurs"/>
+                                    </TextBlock>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding Status}"
+                                           Foreground="#0fa3b1"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </DockPanel>
+
+        <!-- Right panel: Create game + join -->
+        <Border Grid.Column="1" Background="#16213e" Padding="20">
+            <StackPanel>
+                <TextBlock Text="Créer une partie" FontSize="18"
+                           FontWeight="Bold" Foreground="White"
+                           Margin="0,0,0,16"/>
+
+                <TextBlock Text="Nom de la partie" Foreground="#cccccc"
+                           FontSize="12" Margin="0,0,0,4"/>
+                <TextBox Text="{Binding NewGameName, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource InputTextBox}"
+                         Margin="0,0,0,12"/>
+
+                <TextBlock Text="Joueurs max" Foreground="#cccccc"
+                           FontSize="12" Margin="0,0,0,4"/>
+                <ComboBox SelectedItem="{Binding NewGameMaxPlayers}"
+                          Margin="0,0,0,16">
+                    <ComboBoxItem Content="2"/>
+                    <ComboBoxItem Content="3"/>
+                    <ComboBoxItem Content="4"/>
+                    <ComboBoxItem Content="5"/>
+                    <ComboBoxItem Content="6"/>
+                </ComboBox>
+
+                <Button Content="Créer" Command="{Binding CreateGameCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        Height="40" Margin="0,0,0,30"/>
+
+                <Separator Background="#2a2a4a" Margin="0,0,0,20"/>
+
+                <TextBlock Text="Rejoindre" FontSize="18"
+                           FontWeight="Bold" Foreground="White"
+                           Margin="0,0,0,12"/>
+
+                <TextBlock Text="{Binding SelectedGame.GameName, FallbackValue='Aucune partie sélectionnée'}"
+                           Foreground="#8899aa" FontSize="14"
+                           Margin="0,0,0,12"/>
+
+                <Button Content="Rejoindre la partie"
+                        Command="{Binding JoinGameCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        Height="40"/>
+
+                <!-- Error -->
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="#e94560" FontSize="12"
+                           TextWrapping="Wrap" Margin="0,12,0,0"
+                           Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

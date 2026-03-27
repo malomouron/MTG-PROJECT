@@ -1,0 +1,47 @@
+<Window x:Class="MtgClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:MtgClient.ViewModels"
+        xmlns:v="clr-namespace:MtgClient.Views"
+        Title="MTG Commander" 
+        Height="900" Width="1400"
+        MinHeight="700" MinWidth="1100"
+        WindowStartupLocation="CenterScreen"
+        Background="#1a1a2e">
+
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:LoginViewModel}">
+            <v:LoginView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LobbyViewModel}">
+            <v:LobbyView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DeckImportViewModel}">
+            <v:DeckImportView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:GameViewModel}">
+            <v:GameView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:GameEndViewModel}">
+            <v:GameEndView/>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ContentControl Content="{Binding NavigationService.CurrentView}"/>
+
+        <!-- Status bar -->
+        <Border Grid.Row="1" Background="#0f0f23" Padding="10,4">
+            <DockPanel>
+                <Ellipse Width="8" Height="8" Margin="0,0,6,0"
+                         Fill="{Binding IsConnected, Converter={StaticResource BoolToConnectionColorConverter}}"/>
+                <TextBlock Text="{Binding StatusText}" Foreground="#8899aa" FontSize="11"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>
