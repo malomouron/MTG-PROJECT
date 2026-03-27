@@ -1,0 +1,20 @@
+{
+  "id": "krenko_mob_boss",
+  "name": "Krenko, Mob Boss",
+  "type": "creature",
+  "cost": "2RR",
+  "power": 3,
+  "toughness": 3,
+  "isLegendary": true,
+  "colorIdentity": ["red"],
+  "keywords": ["haste"],
+  "abilities": [
+    {
+      "type": "activated",
+      "cost": "tap",
+      "action": "createToken",
+      "value": "1/1 Goblin",
+      "target": "self"
+    }
+  ]
+}

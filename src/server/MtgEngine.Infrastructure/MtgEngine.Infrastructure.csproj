@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\MtgEngine.Application\MtgEngine.Application.csproj" />
+    <ProjectReference Include="..\MtgEngine.Domain\MtgEngine.Domain.csproj" />
+    <ProjectReference Include="..\MtgEngine.Shared\MtgEngine.Shared.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

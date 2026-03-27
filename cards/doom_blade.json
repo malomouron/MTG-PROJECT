@@ -1,0 +1,16 @@
+{
+  "id": "doom_blade",
+  "name": "Doom Blade",
+  "type": "instant",
+  "cost": "1B",
+  "isLegendary": false,
+  "colorIdentity": ["black"],
+  "effects": [
+    {
+      "trigger": "onCast",
+      "action": "destroy",
+      "target": "anyCreature",
+      "value": 0
+    }
+  ]
+}

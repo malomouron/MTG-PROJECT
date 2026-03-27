@@ -1,0 +1,11 @@
+{
+  "id": "colossal_dreadmaw",
+  "name": "Colossal Dreadmaw",
+  "type": "creature",
+  "cost": "4GG",
+  "power": 6,
+  "toughness": 6,
+  "isLegendary": false,
+  "colorIdentity": ["green"],
+  "keywords": ["trample"]
+}

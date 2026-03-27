@@ -1,0 +1,17 @@
+{
+  "id": "plains",
+  "name": "Plains",
+  "type": "land",
+  "cost": "",
+  "isLegendary": false,
+  "colorIdentity": ["white"],
+  "abilities": [
+    {
+      "type": "activated",
+      "cost": "tap",
+      "action": "addMana",
+      "value": "W",
+      "target": "self"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "id": "island",
+  "name": "Island",
+  "type": "land",
+  "cost": "",
+  "isLegendary": false,
+  "colorIdentity": ["blue"],
+  "abilities": [
+    {
+      "type": "activated",
+      "cost": "tap",
+      "action": "addMana",
+      "value": "U",
+      "target": "self"
+    }
+  ]
+}

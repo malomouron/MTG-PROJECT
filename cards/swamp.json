@@ -1,0 +1,17 @@
+{
+  "id": "swamp",
+  "name": "Swamp",
+  "type": "land",
+  "cost": "",
+  "isLegendary": false,
+  "colorIdentity": ["black"],
+  "abilities": [
+    {
+      "type": "activated",
+      "cost": "tap",
+      "action": "addMana",
+      "value": "B",
+      "target": "self"
+    }
+  ]
+}

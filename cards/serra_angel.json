@@ -1,0 +1,11 @@
+{
+  "id": "serra_angel",
+  "name": "Serra Angel",
+  "type": "creature",
+  "cost": "3WW",
+  "power": 4,
+  "toughness": 4,
+  "isLegendary": false,
+  "colorIdentity": ["white"],
+  "keywords": ["flying", "vigilance"]
+}

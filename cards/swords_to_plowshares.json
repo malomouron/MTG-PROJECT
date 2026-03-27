@@ -1,0 +1,16 @@
+{
+  "id": "swords_to_plowshares",
+  "name": "Swords to Plowshares",
+  "type": "instant",
+  "cost": "W",
+  "isLegendary": false,
+  "colorIdentity": ["white"],
+  "effects": [
+    {
+      "trigger": "onCast",
+      "action": "exile",
+      "target": "anyCreature",
+      "value": 0
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\MtgEngine.Application\MtgEngine.Application.csproj" />
+    <ProjectReference Include="..\MtgEngine.Infrastructure\MtgEngine.Infrastructure.csproj" />
+    <ProjectReference Include="..\MtgEngine.Shared\MtgEngine.Shared.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>

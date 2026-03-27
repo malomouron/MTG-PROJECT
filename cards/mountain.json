@@ -1,0 +1,17 @@
+{
+  "id": "mountain",
+  "name": "Mountain",
+  "type": "land",
+  "cost": "",
+  "isLegendary": false,
+  "colorIdentity": ["red"],
+  "abilities": [
+    {
+      "type": "activated",
+      "cost": "tap",
+      "action": "addMana",
+      "value": "R",
+      "target": "self"
+    }
+  ]
+}

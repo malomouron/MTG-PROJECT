@@ -1,0 +1,17 @@
+{
+  "id": "forest",
+  "name": "Forest",
+  "type": "land",
+  "cost": "",
+  "isLegendary": false,
+  "colorIdentity": ["green"],
+  "abilities": [
+    {
+      "type": "activated",
+      "cost": "tap",
+      "action": "addMana",
+      "value": "G",
+      "target": "self"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "id": "llanowar_elves",
+  "name": "Llanowar Elves",
+  "type": "creature",
+  "cost": "G",
+  "power": 1,
+  "toughness": 1,
+  "isLegendary": false,
+  "colorIdentity": ["green"],
+  "keywords": [],
+  "abilities": [
+    {
+      "type": "activated",
+      "cost": "tap",
+      "action": "addMana",
+      "value": "G",
+      "target": "self"
+    }
+  ]
+}

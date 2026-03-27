@@ -1,0 +1,11 @@
+{
+  "id": "grizzly_bears",
+  "name": "Grizzly Bears",
+  "type": "creature",
+  "cost": "1G",
+  "power": 2,
+  "toughness": 2,
+  "isLegendary": false,
+  "colorIdentity": ["green"],
+  "keywords": []
+}

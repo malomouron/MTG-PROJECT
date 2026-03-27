@@ -1,0 +1,16 @@
+{
+  "id": "lightning_bolt",
+  "name": "Lightning Bolt",
+  "type": "instant",
+  "cost": "R",
+  "isLegendary": false,
+  "colorIdentity": ["red"],
+  "effects": [
+    {
+      "trigger": "onCast",
+      "action": "dealDamage",
+      "target": "any",
+      "value": 3
+    }
+  ]
+}

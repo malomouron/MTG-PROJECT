@@ -1,0 +1,17 @@
+{
+  "id": "sol_ring",
+  "name": "Sol Ring",
+  "type": "artifact",
+  "cost": "1",
+  "isLegendary": false,
+  "colorIdentity": [],
+  "abilities": [
+    {
+      "type": "activated",
+      "cost": "tap",
+      "action": "addMana",
+      "value": "CC",
+      "target": "self"
+    }
+  ]
+}
