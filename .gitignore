@@ -1,0 +1,63 @@
+# =========================
+# .NET / C#
+# =========================
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.user
+*.suo
+*.cache
+*.vs/
+*.userprefs
+
+# NuGet
+*.nupkg
+**/packages/*
+!**/packages/build/
+
+# =========================
+# IDE
+# =========================
+
+# Visual Studio
+.vs/
+*.sln.docstates
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# Build output
+# =========================
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+publish/
+out/
+
+# =========================
+# Logs & temp
+# =========================
+*.log
+*.tmp
+*.swp
+*~

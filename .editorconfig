@@ -1,0 +1,33 @@
+# EditorConfig — consistent coding style across editors
+# https://editorconfig.org
+
+root = true
+
+# Default for all files
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# C# files
+[*.cs]
+indent_size = 4
+
+# JSON files (cards, mods, config)
+[*.json]
+indent_size = 2
+
+# Markdown
+[*.md]
+trim_trailing_whitespace = false
+
+# YAML
+[*.{yml,yaml}]
+indent_size = 2
+
+# XML / csproj
+[*.{xml,csproj,props,targets}]
+indent_size = 2
